@@ -22,6 +22,19 @@
             background-color: rgba(0, 255, 0, 0.2); box-shadow: 0 0 4px rgba(0,0,0,0.8);
             pointer-events: none; transform: translate(-50%, -50%); z-index: 10; display: none;
         }
+        .center-reticle {
+            position: absolute; top: 50%; left: 50%; width: 40px; height: 40px;
+            border: 2px solid #ef4444;
+            background-color: rgba(255, 0, 0, 0.1);
+            transform: translate(-50%, -50%); pointer-events: none; z-index: 20;
+            box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.5);
+        }
+        .center-reticle::before, .center-reticle::after {
+            content: ''; position: absolute; background: #ef4444;
+        }
+        .center-reticle::before { top: 50%; left: -10px; width: 60px; height: 1px; transform: translateY(-50%); }
+        .center-reticle::after { left: 50%; top: -10px; height: 60px; width: 1px; transform: translateX(-50%); }
+
         .cursor-crosshair { cursor: crosshair; }
         .loading-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
@@ -134,6 +147,13 @@
                     <i class="fas fa-sign-out-alt"></i> Logout
                 </button>
             </div>
+            
+             <!-- Top Right Status Icon -->
+            <div class="absolute top-4 right-4 z-10 flex gap-4 items-center" id="statusIconContainer">
+                <div id="topRightStatus" class="flex items-center justify-center bg-white/20 backdrop-blur-sm rounded-full w-10 h-10 shadow-lg">
+                    <i class="fas fa-times-circle text-red-500 text-2xl drop-shadow-md"></i>
+                </div>
+            </div>
         </div>
 
         <div class="p-4 md:p-6">
@@ -176,7 +196,10 @@
                                 <video id="videoElement" autoplay playsinline class="absolute top-0 left-0 w-full h-full object-contain hidden opacity-0"></video>
                                 <img id="imagePreview" class="absolute top-0 left-0 w-full h-full object-contain hidden opacity-0" />
                                 <canvas id="canvasElement" class="absolute top-0 left-0 w-full h-full"></canvas>
-                                <div id="colorMarker" class="marker-box"></div>
+                                <!-- Center Reticle for Camera Mode -->
+                                <div id="centerReticle" class="center-reticle hidden"></div>
+                                <!-- Click Marker for Image Mode -->
+                                <div id="colorMarker" class="marker-box hidden"></div>
                             </div>
                         </div>
 
@@ -196,7 +219,12 @@
                         </div>
 
                         <div class="bg-gray-100 p-4 rounded-lg relative shadow-inner">
-                            <h2 class="text-xs font-bold text-gray-500 mb-2 uppercase">3. ค่าสี RGB (ปรับแต่ง)</h2>
+                            <div class="flex justify-between items-center mb-2">
+                                <h2 class="text-xs font-bold text-gray-500 uppercase">3. ค่าสี RGB (ปรับแต่ง)</h2>
+                                <button id="btnPauseAnalysis" onclick="toggleAnalysisPause()" class="text-[10px] bg-white hover:bg-gray-50 text-gray-600 px-2 py-1 rounded border border-gray-300 shadow-sm transition">
+                                    <i class="fas fa-pause mr-1"></i> หยุดอ่านค่า
+                                </button>
+                            </div>
                             <!-- Compact RGB Input Grid -->
                             <div class="grid grid-cols-3 gap-2 mb-2">
                                 <div class="flex flex-col items-center">
@@ -460,8 +488,9 @@
     let currentUser = null;
     let mySoilData = []; 
     let myPreferences = { showBrightness: false, useRealTimeAnalysis: true, selectedCameraId: '' };
-    let editIndex = -1; 
+    let editIndex = -1; // -1 means add mode
     let isCameraActive = false;
+    let isAnalysisPaused = false; // Add pause state variable
     let markerPosition = null; 
     let currentFacingMode = 'environment';
     
@@ -527,6 +556,20 @@
                 select.appendChild(option);
             });
         });
+    }
+
+    function toggleAnalysisPause() {
+        isAnalysisPaused = !isAnalysisPaused;
+        const btn = document.getElementById('btnPauseAnalysis');
+        if(!btn) return;
+        
+        if (isAnalysisPaused) {
+            btn.innerHTML = '<i class="fas fa-play mr-1"></i> อ่านต่อ';
+            btn.className = "text-[10px] bg-green-50 hover:bg-green-100 text-green-700 px-2 py-1 rounded border border-green-200 shadow-sm transition";
+        } else {
+            btn.innerHTML = '<i class="fas fa-pause mr-1"></i> หยุดอ่านค่า';
+            btn.className = "text-[10px] bg-white hover:bg-gray-50 text-gray-600 px-2 py-1 rounded border border-gray-300 shadow-sm transition";
+        }
     }
 
     function analyzeSoil() {
@@ -599,13 +642,18 @@
 
     function updateSystemStatus(isReady) {
         const dbStatus = document.getElementById('dbStatus');
+        const topRightStatus = document.getElementById('topRightStatus');
         
+        if (!dbStatus || !topRightStatus) return; // Safety check
+
         if(isReady) {
             dbStatus.innerHTML = '<i class="fas fa-check-circle"></i> สถานะ: พร้อมใช้งาน (Cloud Auto-Sync)';
             dbStatus.className = "text-xs text-yellow-200 mt-2 bg-black/20 px-2 py-1 rounded inline-block";
+            topRightStatus.innerHTML = '<i class="fas fa-check-circle text-green-400 text-2xl drop-shadow-md"></i>';
         } else {
             dbStatus.innerHTML = '<i class="fas fa-exclamation-circle"></i> สถานะ: ยังไม่พร้อมใช้งาน (กำลังโหลด...)';
             dbStatus.className = "text-xs text-red-300 mt-2 bg-black/20 px-2 py-1 rounded inline-block animate-pulse";
+            topRightStatus.innerHTML = '<i class="fas fa-times-circle text-red-500 text-2xl drop-shadow-md"></i>';
         }
     }
 
@@ -880,20 +928,31 @@
 
     async function performLogin(user) {
         currentUser = user;
-        await loadUserData(user.username);
+        
+        // Instant UI Switch (No Blocking)
         document.getElementById('login-panel').classList.add('hidden');
         document.getElementById('admin-panel').classList.remove('hidden');
         document.getElementById('userInfoDisplay').classList.remove('hidden');
         document.getElementById('loggedInUser').innerText = `👤 ${user.username}`;
         const userManageBtn = document.getElementById('menu-user-manage');
         if (user.role === 'admin') userManageBtn.classList.remove('hidden'); else userManageBtn.classList.add('hidden');
-        document.getElementById('toggleBrightness').checked = myPreferences.showBrightness;
-        document.getElementById('toggleRealTime').checked = myPreferences.useRealTimeAnalysis;
-        toggleBrightnessSetting(false);
-        toggleRealTimeSetting(false);
-        populateCameraList();
-        renderConfigTable();
-        renderUserTable();
+        
+        // Hide Main Loader immediately
+        showLoading(false);
+
+        // Background load
+        showSyncBadge(true, "กำลังโหลดข้อมูลส่วนตัว...");
+        loadUserData(user.username).then(() => {
+             populateCameraList();
+             renderConfigTable();
+             renderUserTable();
+             document.getElementById('toggleBrightness').checked = myPreferences.showBrightness;
+             document.getElementById('toggleRealTime').checked = myPreferences.useRealTimeAnalysis;
+             toggleBrightnessSetting(false);
+             toggleRealTimeSetting(false);
+             showSyncBadge(false);
+        });
+
         document.getElementById('username').value = '';
         document.getElementById('password').value = '';
         document.getElementById('loginError').classList.add('hidden');
@@ -1068,6 +1127,11 @@
             if(cvs.width !== vid.videoWidth) { cvs.width = vid.videoWidth; cvs.height = vid.videoHeight; }
             ctx.drawImage(vid, 0, 0);
             if(markerPosition) processAreaColor(cvs, markerPosition.x, markerPosition.y);
+            // Center Reticle Logic
+            else if (!isAnalysisPaused) {
+                 const rect = cvs.getBoundingClientRect();
+                 processAreaColor(cvs, rect.width/2 + rect.left, rect.height/2 + rect.top);
+            }
         }
         requestAnimationFrame(drawVideoToCanvasLoop);
     }
@@ -1084,6 +1148,8 @@
     }
 
     function processAreaColor(cvs, cx, cy) {
+        if (isCameraActive && isAnalysisPaused) return; // Respect pause
+
         const rect = cvs.getBoundingClientRect();
         const scaleX = cvs.width / rect.width;
         const scaleY = cvs.height / rect.height;
