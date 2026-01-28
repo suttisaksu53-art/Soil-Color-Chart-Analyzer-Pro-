@@ -22,6 +22,20 @@
             background-color: rgba(0, 255, 0, 0.2); box-shadow: 0 0 4px rgba(0,0,0,0.8);
             pointer-events: none; transform: translate(-50%, -50%); z-index: 10; display: none;
         }
+        /* New Center Reticle for Camera Mode */
+        .center-reticle {
+            position: absolute; top: 50%; left: 50%; width: 40px; height: 40px;
+            border: 2px solid #ef4444; /* Red color */
+            background-color: rgba(255, 0, 0, 0.1);
+            transform: translate(-50%, -50%); pointer-events: none; z-index: 20;
+            box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.5); /* White outline for visibility */
+        }
+        .center-reticle::before, .center-reticle::after {
+            content: ''; position: absolute; background: #ef4444;
+        }
+        .center-reticle::before { top: 50%; left: -10px; width: 60px; height: 1px; transform: translateY(-50%); }
+        .center-reticle::after { left: 50%; top: -10px; height: 60px; width: 1px; transform: translateX(-50%); }
+
         .cursor-crosshair { cursor: crosshair; }
         .loading-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
@@ -134,13 +148,6 @@
                     <i class="fas fa-sign-out-alt"></i> Logout
                 </button>
             </div>
-            
-             <!-- Top Right Status Icon -->
-            <div class="absolute top-4 right-4 z-10 flex gap-4 items-center" id="statusIconContainer">
-                <div id="topRightStatus" class="flex items-center justify-center bg-white/20 backdrop-blur-sm rounded-full w-10 h-10 shadow-lg">
-                    <i class="fas fa-times-circle text-red-500 text-2xl drop-shadow-md"></i>
-                </div>
-            </div>
         </div>
 
         <div class="p-4 md:p-6">
@@ -183,7 +190,11 @@
                                 <video id="videoElement" autoplay playsinline class="absolute top-0 left-0 w-full h-full object-contain hidden opacity-0"></video>
                                 <img id="imagePreview" class="absolute top-0 left-0 w-full h-full object-contain hidden opacity-0" />
                                 <canvas id="canvasElement" class="absolute top-0 left-0 w-full h-full"></canvas>
-                                <div id="colorMarker" class="marker-box"></div>
+                                
+                                <!-- Center Reticle for Camera Mode -->
+                                <div id="centerReticle" class="center-reticle hidden"></div>
+                                <!-- Click Marker for Image Mode -->
+                                <div id="colorMarker" class="marker-box hidden"></div>
                             </div>
                         </div>
 
@@ -259,7 +270,7 @@
                             <h4 class="font-bold text-orange-800 mb-2 text-sm"><i class="fas fa-balance-scale"></i> ตั้งค่าแสงขาว (Calibration)</h4>
                             <div class="flex gap-2 mb-2">
                                 <button onclick="calibrateSystem()" class="bg-orange-600 hover:bg-orange-700 text-white py-2 px-4 rounded text-sm shadow flex-1">
-                                    <i class="fas fa-magic"></i> Calibrate (กระดาษขาว)
+                                    <i class="fas fa-magic"></i> Calibrate
                                 </button>
                                 <button onclick="resetCalibration()" class="bg-gray-400 hover:bg-gray-500 text-white py-2 px-4 rounded text-sm shadow">
                                     <i class="fas fa-undo"></i> Reset
@@ -426,7 +437,7 @@
     <div class="text-center mt-4"><p class="text-xs font-mono credit-text opacity-70 hover:opacity-100 transition duration-300">✨ Design by AAAmacky</p></div>
 
 <script>
-    // --- STORAGE ENGINE (HARDCODED) ---
+    // --- STORAGE ENGINE ---
     const HARDCODED_SHEET_URL = 'https://script.google.com/macros/s/AKfycbxSscpgNcVG9vAvwH6Ccw44AQbh6LtE9Pwp7dfBIw35OeG4SZfTYg3vqmqCS3eCQYRJ/exec';
 
     const StorageEngine = {
@@ -444,17 +455,25 @@
 
         async set(key, value) {
             localStorage.setItem(key, value);
+            // Fire and forget, show status
+            showSyncBadge(true);
+            StorageEngine.backgroundSync(key, value);
+        },
+        
+        async backgroundSync(key, value) {
             try {
-                const response = await fetch(`${HARDCODED_SHEET_URL}?action=write&key=${encodeURIComponent(key)}`, {
+                await fetch(`${HARDCODED_SHEET_URL}?action=write&key=${encodeURIComponent(key)}`, {
                     method: 'POST',
                     mode: 'no-cors',
                     headers: { 'Content-Type': 'text/plain' },
                     body: value
                 });
-                return true; 
+                showSyncBadge(false);
+                showToast("บันทึก Cloud สำเร็จ");
             } catch(e) { 
                 console.error("Cloud Write Error", e);
-                return false;
+                showSyncBadge(false);
+                showToast("บันทึก Cloud ล้มเหลว (ใช้ในเครื่อง)", "error");
             }
         }
     };
@@ -573,7 +592,7 @@
 
         const txt = document.getElementById('resultText');
         const desc = document.getElementById('resultDesc');
-        if (!txt || !desc) return;
+        if (!txt) return;
         
         if(match) {
             txt.innerText = match.level; txt.className = "text-2xl md:text-5xl font-extrabold text-emerald-600"; desc.innerText = "ตรงตามช่วงค่าสีที่กำหนด (Direct Match)";
@@ -592,7 +611,6 @@
         const b = document.getElementById('inputB').value;
         
         // Update RGB Display
-        // Removed updating valR, valG, valB spans as they don't exist anymore
         document.getElementById('colorPreview').style.backgroundColor = `rgb(${r},${g},${b})`;
         
         // Convert and Update HSV Display
