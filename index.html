@@ -134,6 +134,13 @@
                     <i class="fas fa-sign-out-alt"></i> Logout
                 </button>
             </div>
+            
+             <!-- Top Right Status Icon -->
+            <div class="absolute top-4 right-4 z-10 flex gap-4 items-center" id="statusIconContainer">
+                <div id="topRightStatus" class="flex items-center justify-center bg-white/20 backdrop-blur-sm rounded-full w-10 h-10 shadow-lg">
+                    <i class="fas fa-times-circle text-red-500 text-2xl drop-shadow-md"></i>
+                </div>
+            </div>
         </div>
 
         <div class="p-4 md:p-6">
@@ -466,21 +473,19 @@
 
         async set(key, value) {
             localStorage.setItem(key, value);
-            // Optimistic save (no await) - Fire and forget
+            // Fire and forget
             fetch(`${HARDCODED_SHEET_URL}?action=write&key=${encodeURIComponent(key)}`, {
                 method: 'POST',
                 mode: 'no-cors',
                 headers: { 'Content-Type': 'text/plain' },
                 body: value
-            })
-            .then(() => {
+            }).then(() => {
                 showSyncBadge(false);
                 showToast("บันทึกข้อมูลลง Cloud แล้ว");
-            })
-            .catch(e => { 
+            }).catch(e => { 
                 console.error("Cloud Write Error", e);
                 showSyncBadge(false);
-                showToast("เชื่อมต่อ Cloud ไม่ได้ (บันทึกในเครื่อง)", "error");
+                showToast("บันทึก Cloud ล้มเหลว (ใช้ในเครื่อง)", "error");
             });
             showSyncBadge(true, "กำลังบันทึกข้อมูล...");
         }
@@ -507,6 +512,8 @@
         { id: 1, username: 'admin', password: 'admin123', role: 'admin' }, 
         { id: 2, username: 'staff', password: '123', role: 'user' }
     ];
+    // Populate defaults with empty HSV ranges for backward compatibility logic
+    // Structure: r: [min, max], h: [min, max] (optional)
     const DEFAULT_SOIL_DATA = [
         { type: 'N', level: 'ต่ำ (Low)', r: [200, 255], g: [180, 230], b: [180, 230] }, 
         { type: 'N', level: 'ปานกลาง (Medium)', r: [200, 255], g: [100, 179], b: [100, 179] },
@@ -588,54 +595,55 @@
         // Current Values
         const currentHSV = rgbToHsv(r, g, b);
 
-        // --- NEW LOGIC: Mixed RGB / HSV Check ---
+        // --- UPDATED FLEXIBLE LOGIC ---
+        // Match ONLY valid criteria (NaN/Null/Undefined are ignored)
+        
+        // Helper to check if a single range is valid (has 2 numbers)
+        const isValidRange = (arr) => arr && arr.length === 2 && !isNaN(arr[0]) && !isNaN(arr[1]) && arr[0] !== null && arr[1] !== null;
+
         for(let item of candidates) {
-            let isMatch = false;
+            let isMatch = true; // Assume match, fail if any VALID criteria fails
+            let criteriaCount = 0; // Ensure at least one criteria exists
 
-            // 1. Check RGB if exists
-            let matchRGB = false;
-            let hasRGB = (item.r && item.r.length === 2 && !isNaN(item.r[0]) && !isNaN(item.r[1]));
-            if (hasRGB) {
-                if (r >= item.r[0] && r <= item.r[1] &&
-                    g >= item.g[0] && g <= item.g[1] &&
-                    b >= item.b[0] && b <= item.b[1]) {
-                    matchRGB = true;
-                }
+            // Check RGB
+            if (isValidRange(item.r)) {
+                criteriaCount++;
+                if (r < item.r[0] || r > item.r[1]) isMatch = false;
+            }
+            if (isValidRange(item.g)) {
+                criteriaCount++;
+                if (g < item.g[0] || g > item.g[1]) isMatch = false;
+            }
+            if (isValidRange(item.b)) {
+                criteriaCount++;
+                if (b < item.b[0] || b > item.b[1]) isMatch = false;
             }
 
-            // 2. Check HSV if exists
-            let matchHSV = false;
-            let hasHSV = (item.h && item.h.length === 2 && !isNaN(item.h[0]) && !isNaN(item.h[1]));
-            if (hasHSV) {
-                if (currentHSV.h >= item.h[0] && currentHSV.h <= item.h[1] &&
-                    currentHSV.s >= item.s[0] && currentHSV.s <= item.s[1] &&
-                    currentHSV.v >= item.v[0] && currentHSV.v <= item.v[1]) {
-                    matchHSV = true;
-                }
+            // Check HSV
+            if (isValidRange(item.h)) {
+                criteriaCount++;
+                if (currentHSV.h < item.h[0] || currentHSV.h > item.h[1]) isMatch = false;
+            }
+            if (isValidRange(item.s)) {
+                criteriaCount++;
+                if (currentHSV.s < item.s[0] || currentHSV.s > item.s[1]) isMatch = false;
+            }
+            if (isValidRange(item.v)) {
+                criteriaCount++;
+                if (currentHSV.v < item.v[0] || currentHSV.v > item.v[1]) isMatch = false;
             }
 
-            // 3. Decision Logic
-            if (hasRGB && hasHSV) {
-                // Must match BOTH if both exist
-                if (matchRGB && matchHSV) isMatch = true;
-            } else if (hasRGB) {
-                // Only RGB exists
-                if (matchRGB) isMatch = true;
-            } else if (hasHSV) {
-                // Only HSV exists
-                if (matchHSV) isMatch = true;
-            }
-
-            if (isMatch) {
+            // Only consider it a match if at least one criteria was checked and all checked passed
+            if (criteriaCount > 0 && isMatch) {
                 match = item;
                 break;
             }
         }
 
-        // Closest Match (Simple Euclidean on RGB for fallback)
+        // Closest Match (Simple Euclidean on RGB for fallback if only RGB exists, or ignore)
         if (!match) {
             for(let item of candidates) {
-                if (!item.r) continue; // Skip if no RGB data for distance calc
+                if (!isValidRange(item.r)) continue; // Only calc distance if RGB exists
                 const centerR = (item.r[0] + item.r[1]) / 2;
                 const centerG = (item.g[0] + item.g[1]) / 2;
                 const centerB = (item.b[0] + item.b[1]) / 2;
@@ -649,9 +657,9 @@
         if (!txt) return;
         
         if(match) {
-            txt.innerText = match.level; txt.className = "text-2xl md:text-5xl font-extrabold text-emerald-600"; desc.innerText = "ตรงตามช่วงค่าที่กำหนด (Exact Match)";
+            txt.innerText = match.level; txt.className = "text-2xl md:text-5xl font-extrabold text-emerald-600"; desc.innerText = "ตรงตามเกณฑ์ (Match)";
         } else if (closest && minD < 80) { 
-            txt.innerText = closest.level + "*"; txt.className = "text-2xl md:text-5xl font-extrabold text-yellow-600"; desc.innerText = "ค่าใกล้เคียงที่สุด (Closest Match)";
+            txt.innerText = closest.level + "*"; txt.className = "text-2xl md:text-5xl font-extrabold text-yellow-600"; desc.innerText = "ค่าใกล้เคียง (Approx)";
         } else {
             txt.innerText = "ไม่พบข้อมูล"; txt.className = "text-2xl md:text-5xl font-extrabold text-gray-400"; desc.innerText = "อยู่นอกเหนือช่วงข้อมูล";
         }
@@ -665,8 +673,7 @@
         const b = document.getElementById('inputB').value;
         
         // Update RGB Display
-        const colorPreview = document.getElementById('colorPreview');
-        if(colorPreview) colorPreview.style.backgroundColor = `rgb(${r},${g},${b})`;
+        document.getElementById('colorPreview').style.backgroundColor = `rgb(${r},${g},${b})`;
         
         // Convert and Update HSV Display
         const hsv = rgbToHsv(r, g, b);
@@ -920,16 +927,19 @@
                     if(row && row.length >= 8) { 
                         // Enhanced Import to include HSV if present (assuming columns 8-13)
                         const entry = {
-                            type: String(row[0] || "Unknown"), level: String(row[1] || "Unknown"),
-                            r: [parseInt(row[2]||0), parseInt(row[3]||0)], 
-                            g: [parseInt(row[4]||0), parseInt(row[5]||0)], 
-                            b: [parseInt(row[6]||0), parseInt(row[7]||0)]
+                            type: String(row[0] || "Unknown"), level: String(row[1] || "Unknown")
                         };
-                        // Optional HSV import if columns exist
-                        if(row[8] !== undefined) {
-                            entry.h = [parseInt(row[8]||0), parseInt(row[9]||0)];
-                            entry.s = [parseInt(row[10]||0), parseInt(row[11]||0)];
-                            entry.v = [parseInt(row[12]||0), parseInt(row[13]||0)];
+                        // RGB
+                        if(row[2] !== undefined && row[2] !== "" && row[2] !== null) {
+                             entry.r = [parseInt(row[2]), parseInt(row[3])];
+                             entry.g = [parseInt(row[4]), parseInt(row[5])];
+                             entry.b = [parseInt(row[6]), parseInt(row[7])];
+                        }
+                        // HSV (Optional)
+                        if(row[8] !== undefined && row[8] !== "" && row[8] !== null) {
+                            entry.h = [parseInt(row[8]), parseInt(row[9])];
+                            entry.s = [parseInt(row[10]), parseInt(row[11])];
+                            entry.v = [parseInt(row[12]), parseInt(row[13])];
                         }
                         newData.push(entry);
                     }
