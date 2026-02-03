@@ -466,16 +466,18 @@
 
         async set(key, value) {
             localStorage.setItem(key, value);
-            // Fire and forget
+            // Optimistic save (no await) - Fire and forget
             fetch(`${HARDCODED_SHEET_URL}?action=write&key=${encodeURIComponent(key)}`, {
                 method: 'POST',
                 mode: 'no-cors',
                 headers: { 'Content-Type': 'text/plain' },
                 body: value
-            }).then(() => {
+            })
+            .then(() => {
                 showSyncBadge(false);
                 showToast("บันทึกข้อมูลลง Cloud แล้ว");
-            }).catch(e => { 
+            })
+            .catch(e => { 
                 console.error("Cloud Write Error", e);
                 showSyncBadge(false);
                 showToast("เชื่อมต่อ Cloud ไม่ได้ (บันทึกในเครื่อง)", "error");
@@ -505,8 +507,6 @@
         { id: 1, username: 'admin', password: 'admin123', role: 'admin' }, 
         { id: 2, username: 'staff', password: '123', role: 'user' }
     ];
-    // Populate defaults with empty HSV ranges for backward compatibility logic
-    // Structure: r: [min, max], h: [min, max] (optional)
     const DEFAULT_SOIL_DATA = [
         { type: 'N', level: 'ต่ำ (Low)', r: [200, 255], g: [180, 230], b: [180, 230] }, 
         { type: 'N', level: 'ปานกลาง (Medium)', r: [200, 255], g: [100, 179], b: [100, 179] },
@@ -594,7 +594,7 @@
 
             // 1. Check RGB if exists
             let matchRGB = false;
-            let hasRGB = (item.r && item.r.length === 2);
+            let hasRGB = (item.r && item.r.length === 2 && !isNaN(item.r[0]) && !isNaN(item.r[1]));
             if (hasRGB) {
                 if (r >= item.r[0] && r <= item.r[1] &&
                     g >= item.g[0] && g <= item.g[1] &&
@@ -605,7 +605,7 @@
 
             // 2. Check HSV if exists
             let matchHSV = false;
-            let hasHSV = (item.h && item.h.length === 2);
+            let hasHSV = (item.h && item.h.length === 2 && !isNaN(item.h[0]) && !isNaN(item.h[1]));
             if (hasHSV) {
                 if (currentHSV.h >= item.h[0] && currentHSV.h <= item.h[1] &&
                     currentHSV.s >= item.s[0] && currentHSV.s <= item.s[1] &&
@@ -665,7 +665,8 @@
         const b = document.getElementById('inputB').value;
         
         // Update RGB Display
-        document.getElementById('colorPreview').style.backgroundColor = `rgb(${r},${g},${b})`;
+        const colorPreview = document.getElementById('colorPreview');
+        if(colorPreview) colorPreview.style.backgroundColor = `rgb(${r},${g},${b})`;
         
         // Convert and Update HSV Display
         const hsv = rgbToHsv(r, g, b);
