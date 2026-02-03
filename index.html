@@ -22,19 +22,6 @@
             background-color: rgba(0, 255, 0, 0.2); box-shadow: 0 0 4px rgba(0,0,0,0.8);
             pointer-events: none; transform: translate(-50%, -50%); z-index: 10; display: none;
         }
-        .center-reticle {
-            position: absolute; top: 50%; left: 50%; width: 40px; height: 40px;
-            border: 2px solid #ef4444;
-            background-color: rgba(255, 0, 0, 0.1);
-            transform: translate(-50%, -50%); pointer-events: none; z-index: 20;
-            box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.5);
-        }
-        .center-reticle::before, .center-reticle::after {
-            content: ''; position: absolute; background: #ef4444;
-        }
-        .center-reticle::before { top: 50%; left: -10px; width: 60px; height: 1px; transform: translateY(-50%); }
-        .center-reticle::after { left: 50%; top: -10px; height: 60px; width: 1px; transform: translateX(-50%); }
-
         .cursor-crosshair { cursor: crosshair; }
         .loading-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
@@ -147,13 +134,6 @@
                     <i class="fas fa-sign-out-alt"></i> Logout
                 </button>
             </div>
-            
-             <!-- Top Right Status Icon -->
-            <div class="absolute top-4 right-4 z-10 flex gap-4 items-center" id="statusIconContainer">
-                <div id="topRightStatus" class="flex items-center justify-center bg-white/20 backdrop-blur-sm rounded-full w-10 h-10 shadow-lg">
-                    <i class="fas fa-times-circle text-red-500 text-2xl drop-shadow-md"></i>
-                </div>
-            </div>
         </div>
 
         <div class="p-4 md:p-6">
@@ -241,10 +221,10 @@
                                 </div>
                             </div>
                             
-                            <!-- HSV Display Section -->
+                            <!-- HSV Display Section (New) -->
                             <div id="hsvDisplayContainer" class="mt-2 p-2 bg-indigo-50 rounded-lg border border-indigo-200 shadow-sm">
                                 <div class="flex justify-between items-center text-indigo-800 mb-1">
-                                    <span class="font-bold text-xs uppercase"><i class="fas fa-palette mr-1"></i> HSV</span>
+                                    <span class="font-bold text-xs uppercase"><i class="fas fa-palette mr-1"></i> ค่าสี HSV</span>
                                 </div>
                                 <div class="grid grid-cols-3 gap-2 text-center text-xs font-mono">
                                     <div class="bg-white p-1 rounded shadow-sm">
@@ -280,7 +260,7 @@
                             <h4 class="font-bold text-orange-800 mb-2 text-sm"><i class="fas fa-balance-scale"></i> ตั้งค่าแสงขาว (Calibration)</h4>
                             <div class="flex gap-2 mb-2">
                                 <button onclick="calibrateSystem()" class="bg-orange-600 hover:bg-orange-700 text-white py-2 px-4 rounded text-sm shadow flex-1">
-                                    <i class="fas fa-magic"></i> Calibrate (กระดาษขาว)
+                                    <i class="fas fa-magic"></i> Calibrate
                                 </button>
                                 <button onclick="resetCalibration()" class="bg-gray-400 hover:bg-gray-500 text-white py-2 px-4 rounded text-sm shadow">
                                     <i class="fas fa-undo"></i> Reset
@@ -359,20 +339,41 @@
                                     </div>
                                 </div>
                                 
-                                <div class="overflow-x-auto mb-6 max-h-96 overflow-y-auto border rounded"><table class="w-full text-sm text-left text-gray-500"><thead class="text-xs text-gray-700 uppercase bg-gray-100 sticky top-0"><tr><th class="px-3 py-3">Type</th><th class="px-3 py-3">Level</th><th class="px-3 py-3 text-center">R</th><th class="px-3 py-3 text-center">G</th><th class="px-3 py-3 text-center">B</th><th class="px-3 py-3 text-center">Action</th></tr></thead><tbody id="configTableBody"></tbody></table></div>
+                                <div class="overflow-x-auto mb-6 max-h-96 overflow-y-auto border rounded"><table class="w-full text-sm text-left text-gray-500"><thead class="text-xs text-gray-700 uppercase bg-gray-100 sticky top-0"><tr>
+                                    <th class="px-3 py-3">Type</th><th class="px-3 py-3">Level</th>
+                                    <th class="px-1 py-3 text-center bg-red-50 text-red-600">R</th><th class="px-1 py-3 text-center bg-green-50 text-green-600">G</th><th class="px-1 py-3 text-center bg-blue-50 text-blue-600">B</th>
+                                    <th class="px-1 py-3 text-center bg-indigo-50 text-indigo-600">H</th><th class="px-1 py-3 text-center bg-indigo-50 text-indigo-600">S</th><th class="px-1 py-3 text-center bg-indigo-50 text-indigo-600">V</th>
+                                    <th class="px-3 py-3 text-center">Action</th>
+                                </tr></thead><tbody id="configTableBody"></tbody></table></div>
+                                
                                 <div class="bg-gray-50 p-4 rounded-lg border">
                                     <h4 class="font-bold text-sm mb-2 text-gray-700" id="formTitle">เพิ่มช่วงสีใหม่</h4>
+                                    
+                                    <!-- RGB Inputs -->
+                                    <div class="text-xs font-bold text-gray-500 mb-1">ข้อมูลทั่วไป & RGB</div>
                                     <div class="grid grid-cols-2 md:grid-cols-4 gap-2 mb-2">
                                         <input id="newType" type="text" placeholder="Type" class="p-2 border rounded text-sm">
                                         <input id="newLevel" type="text" placeholder="Level" class="p-2 border rounded text-sm">
-                                        <input id="newRMin" type="number" placeholder="R Min" class="p-2 border rounded text-sm">
-                                        <input id="newRMax" type="number" placeholder="R Max" class="p-2 border rounded text-sm">
-                                        <input id="newGMin" type="number" placeholder="G Min" class="p-2 border rounded text-sm">
-                                        <input id="newGMax" type="number" placeholder="G Max" class="p-2 border rounded text-sm">
-                                        <input id="newBMin" type="number" placeholder="B Min" class="p-2 border rounded text-sm">
-                                        <input id="newBMax" type="number" placeholder="B Max" class="p-2 border rounded text-sm">
+                                        <input id="newRMin" type="number" placeholder="R Min" class="p-2 border rounded text-sm border-red-200">
+                                        <input id="newRMax" type="number" placeholder="R Max" class="p-2 border rounded text-sm border-red-200">
+                                        <input id="newGMin" type="number" placeholder="G Min" class="p-2 border rounded text-sm border-green-200">
+                                        <input id="newGMax" type="number" placeholder="G Max" class="p-2 border rounded text-sm border-green-200">
+                                        <input id="newBMin" type="number" placeholder="B Min" class="p-2 border rounded text-sm border-blue-200">
+                                        <input id="newBMax" type="number" placeholder="B Max" class="p-2 border rounded text-sm border-blue-200">
                                     </div>
-                                    <div class="flex gap-2">
+                                    
+                                    <!-- HSV Inputs (New) -->
+                                    <div class="text-xs font-bold text-indigo-500 mb-1 mt-3">ช่วงค่า HSV (ถ้าไม่ระบุจะใช้ RGB อย่างเดียว)</div>
+                                    <div class="grid grid-cols-3 md:grid-cols-6 gap-2 mb-2">
+                                        <input id="newHMin" type="number" placeholder="H Min" class="p-2 border rounded text-sm border-indigo-200">
+                                        <input id="newHMax" type="number" placeholder="H Max" class="p-2 border rounded text-sm border-indigo-200">
+                                        <input id="newSMin" type="number" placeholder="S Min" class="p-2 border rounded text-sm border-indigo-200">
+                                        <input id="newSMax" type="number" placeholder="S Max" class="p-2 border rounded text-sm border-indigo-200">
+                                        <input id="newVMin" type="number" placeholder="V Min" class="p-2 border rounded text-sm border-indigo-200">
+                                        <input id="newVMax" type="number" placeholder="V Max" class="p-2 border rounded text-sm border-indigo-200">
+                                    </div>
+
+                                    <div class="flex gap-2 mt-2">
                                         <button id="btnSaveRange" onclick="saveRange()" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 text-sm flex-1"><i class="fas fa-plus"></i> เพิ่มข้อมูล</button>
                                         <button id="btnCancelEdit" onclick="cancelEdit()" class="bg-gray-400 text-white px-4 py-2 rounded hover:bg-gray-500 text-sm hidden">ยกเลิก</button>
                                     </div>
@@ -447,7 +448,7 @@
     <div class="text-center mt-4"><p class="text-xs font-mono credit-text opacity-70 hover:opacity-100 transition duration-300">✨ Design by AAAmacky</p></div>
 
 <script>
-    // --- STORAGE ENGINE ---
+    // --- STORAGE ENGINE (HARDCODED) ---
     const HARDCODED_SHEET_URL = 'https://script.google.com/macros/s/AKfycbxSscpgNcVG9vAvwH6Ccw44AQbh6LtE9Pwp7dfBIw35OeG4SZfTYg3vqmqCS3eCQYRJ/exec';
 
     const StorageEngine = {
@@ -477,7 +478,7 @@
             }).catch(e => { 
                 console.error("Cloud Write Error", e);
                 showSyncBadge(false);
-                showToast("บันทึก Cloud ล้มเหลว (ใช้ในเครื่อง)", "error");
+                showToast("เชื่อมต่อ Cloud ไม่ได้ (บันทึกในเครื่อง)", "error");
             });
             showSyncBadge(true, "กำลังบันทึกข้อมูล...");
         }
@@ -490,7 +491,7 @@
     let myPreferences = { showBrightness: false, useRealTimeAnalysis: true, selectedCameraId: '' };
     let editIndex = -1; // -1 means add mode
     let isCameraActive = false;
-    let isAnalysisPaused = false; // Add pause state variable
+    let isAnalysisPaused = false; 
     let markerPosition = null; 
     let currentFacingMode = 'environment';
     
@@ -504,6 +505,8 @@
         { id: 1, username: 'admin', password: 'admin123', role: 'admin' }, 
         { id: 2, username: 'staff', password: '123', role: 'user' }
     ];
+    // Populate defaults with empty HSV ranges for backward compatibility logic
+    // Structure: r: [min, max], h: [min, max] (optional)
     const DEFAULT_SOIL_DATA = [
         { type: 'N', level: 'ต่ำ (Low)', r: [200, 255], g: [180, 230], b: [180, 230] }, 
         { type: 'N', level: 'ปานกลาง (Medium)', r: [200, 255], g: [100, 179], b: [100, 179] },
@@ -582,26 +585,63 @@
         const candidates = mySoilData.filter(d => d.type === type);
         let match = null, closest = null, minD = Infinity;
 
-        // Strict Range Check (RGB)
+        // Current Values
+        const currentHSV = rgbToHsv(r, g, b);
+
+        // --- NEW LOGIC: Mixed RGB / HSV Check ---
         for(let item of candidates) {
-            if(r >= item.r[0] && r <= item.r[1] && g >= item.g[0] && g <= item.g[1] && b >= item.b[0] && b <= item.b[1]) { 
-                match = item; break; 
+            let isMatch = false;
+
+            // 1. Check RGB if exists
+            let matchRGB = false;
+            let hasRGB = (item.r && item.r.length === 2);
+            if (hasRGB) {
+                if (r >= item.r[0] && r <= item.r[1] &&
+                    g >= item.g[0] && g <= item.g[1] &&
+                    b >= item.b[0] && b <= item.b[1]) {
+                    matchRGB = true;
+                }
+            }
+
+            // 2. Check HSV if exists
+            let matchHSV = false;
+            let hasHSV = (item.h && item.h.length === 2);
+            if (hasHSV) {
+                if (currentHSV.h >= item.h[0] && currentHSV.h <= item.h[1] &&
+                    currentHSV.s >= item.s[0] && currentHSV.s <= item.s[1] &&
+                    currentHSV.v >= item.v[0] && currentHSV.v <= item.v[1]) {
+                    matchHSV = true;
+                }
+            }
+
+            // 3. Decision Logic
+            if (hasRGB && hasHSV) {
+                // Must match BOTH if both exist
+                if (matchRGB && matchHSV) isMatch = true;
+            } else if (hasRGB) {
+                // Only RGB exists
+                if (matchRGB) isMatch = true;
+            } else if (hasHSV) {
+                // Only HSV exists
+                if (matchHSV) isMatch = true;
+            }
+
+            if (isMatch) {
+                match = item;
+                break;
             }
         }
 
-        // Closest Match Check (Using RGB Euclidean for consistency)
-        for(let item of candidates) {
-            const centerR = (item.r[0] + item.r[1]) / 2;
-            const centerG = (item.g[0] + item.g[1]) / 2;
-            const centerB = (item.b[0] + item.b[1]) / 2;
-            
-            const dist = Math.sqrt(
-                Math.pow(r - centerR, 2) + 
-                Math.pow(g - centerG, 2) + 
-                Math.pow(b - centerB, 2)
-            );
-            
-            if(dist < minD) { minD = dist; closest = item; }
+        // Closest Match (Simple Euclidean on RGB for fallback)
+        if (!match) {
+            for(let item of candidates) {
+                if (!item.r) continue; // Skip if no RGB data for distance calc
+                const centerR = (item.r[0] + item.r[1]) / 2;
+                const centerG = (item.g[0] + item.g[1]) / 2;
+                const centerB = (item.b[0] + item.b[1]) / 2;
+                const dist = Math.sqrt(Math.pow(r - centerR, 2) + Math.pow(g - centerG, 2) + Math.pow(b - centerB, 2));
+                if(dist < minD) { minD = dist; closest = item; }
+            }
         }
 
         const txt = document.getElementById('resultText');
@@ -609,7 +649,7 @@
         if (!txt) return;
         
         if(match) {
-            txt.innerText = match.level; txt.className = "text-2xl md:text-5xl font-extrabold text-emerald-600"; desc.innerText = "ตรงตามช่วงค่าสีที่กำหนด (Direct Match)";
+            txt.innerText = match.level; txt.className = "text-2xl md:text-5xl font-extrabold text-emerald-600"; desc.innerText = "ตรงตามช่วงค่าที่กำหนด (Exact Match)";
         } else if (closest && minD < 80) { 
             txt.innerText = closest.level + "*"; txt.className = "text-2xl md:text-5xl font-extrabold text-yellow-600"; desc.innerText = "ค่าใกล้เคียงที่สุด (Closest Match)";
         } else {
@@ -819,15 +859,36 @@
 
     // --- TABLE ACTIONS (FAST UI) ---
     function saveRange() {
-        const inputs = ['newType', 'newLevel', 'newRMin', 'newRMax', 'newGMin', 'newGMax', 'newBMin', 'newBMax'];
-        const vals = inputs.map(id => document.getElementById(id).value);
-        if(vals.some(v => v === '')) { alert("กรอกข้อมูลไม่ครบ"); return; }
+        const fields = ['newType', 'newLevel', 
+            'newRMin', 'newRMax', 'newGMin', 'newGMax', 'newBMin', 'newBMax',
+            'newHMin', 'newHMax', 'newSMin', 'newSMax', 'newVMin', 'newVMax'
+        ];
+        
+        const vals = {};
+        fields.forEach(id => vals[id] = document.getElementById(id).value);
+        
+        if(!vals.newType || !vals.newLevel) { alert("กรุณาระบุ Type และ Level"); return; }
+        
+        // Construct New Data
         const newData = {
-            type: vals[0], level: vals[1],
-            r: [parseInt(vals[2]), parseInt(vals[3])],
-            g: [parseInt(vals[4]), parseInt(vals[5])],
-            b: [parseInt(vals[6]), parseInt(vals[7])]
+            type: vals.newType,
+            level: vals.newLevel
         };
+
+        // Add RGB if valid
+        if(vals.newRMin !== "") {
+            newData.r = [parseInt(vals.newRMin), parseInt(vals.newRMax)];
+            newData.g = [parseInt(vals.newGMin), parseInt(vals.newGMax)];
+            newData.b = [parseInt(vals.newBMin), parseInt(vals.newBMax)];
+        }
+
+        // Add HSV if valid
+        if(vals.newHMin !== "") {
+            newData.h = [parseInt(vals.newHMin), parseInt(vals.newHMax)];
+            newData.s = [parseInt(vals.newSMin), parseInt(vals.newSMax)];
+            newData.v = [parseInt(vals.newVMin), parseInt(vals.newVMax)];
+        }
+
         if(editIndex >= 0) { mySoilData[editIndex] = newData; } else { mySoilData.push(newData); }
         cancelEdit(); renderConfigTable(); saveUserData();
     }
@@ -856,10 +917,20 @@
                 for(let i = 1; i < jsonData.length; i++) {
                     const row = jsonData[i];
                     if(row && row.length >= 8) { 
-                         newData.push({
+                        // Enhanced Import to include HSV if present (assuming columns 8-13)
+                        const entry = {
                             type: String(row[0] || "Unknown"), level: String(row[1] || "Unknown"),
-                            r: [parseInt(row[2]||0), parseInt(row[3]||0)], g: [parseInt(row[4]||0), parseInt(row[5]||0)], b: [parseInt(row[6]||0), parseInt(row[7]||0)]
-                        });
+                            r: [parseInt(row[2]||0), parseInt(row[3]||0)], 
+                            g: [parseInt(row[4]||0), parseInt(row[5]||0)], 
+                            b: [parseInt(row[6]||0), parseInt(row[7]||0)]
+                        };
+                        // Optional HSV import if columns exist
+                        if(row[8] !== undefined) {
+                            entry.h = [parseInt(row[8]||0), parseInt(row[9]||0)];
+                            entry.s = [parseInt(row[10]||0), parseInt(row[11]||0)];
+                            entry.v = [parseInt(row[12]||0), parseInt(row[13]||0)];
+                        }
+                        newData.push(entry);
                     }
                 }
                 if(newData.length > 0) {
@@ -876,8 +947,17 @@
     // --- EXPORT ---
     function exportXLSX() {
         if(!mySoilData || mySoilData.length === 0) { alert("ไม่มีข้อมูล"); return; }
-        const ws_data = [["Type", "Level", "R_Min", "R_Max", "G_Min", "G_Max", "B_Min", "B_Max"]];
-        mySoilData.forEach(d => { ws_data.push([d.type, d.level, d.r[0], d.r[1], d.g[0], d.g[1], d.b[0], d.b[1]]); });
+        const ws_data = [["Type", "Level", "R_Min", "R_Max", "G_Min", "G_Max", "B_Min", "B_Max", "H_Min", "H_Max", "S_Min", "S_Max", "V_Min", "V_Max"]];
+        mySoilData.forEach(d => { 
+            const row = [d.type, d.level];
+            if(d.r) row.push(d.r[0], d.r[1], d.g[0], d.g[1], d.b[0], d.b[1]);
+            else row.push("", "", "", "", "", "");
+            
+            if(d.h) row.push(d.h[0], d.h[1], d.s[0], d.s[1], d.v[0], d.v[1]);
+            else row.push("", "", "", "", "", "");
+            
+            ws_data.push(row);
+        });
         const ws = XLSX.utils.aoa_to_sheet(ws_data);
         const wb = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(wb, ws, "SoilData");
@@ -890,16 +970,54 @@
         if(!tbody) return;
         tbody.innerHTML = '';
         mySoilData.forEach((d, i) => {
-            tbody.innerHTML += `<tr class="bg-white border-b hover:bg-gray-50"><td class="px-3 py-2 font-bold">${d.type}</td><td class="px-3 py-2 text-xs">${d.level}</td><td class="px-3 py-2 text-red-600 text-xs">${d.r[0]}-${d.r[1]}</td><td class="px-3 py-2 text-green-600 text-xs">${d.g[0]}-${d.g[1]}</td><td class="px-3 py-2 text-blue-600 text-xs">${d.b[0]}-${d.b[1]}</td><td class="px-3 py-2 text-center flex gap-1 justify-center"><button onclick="startEdit(${i})" class="text-blue-500 mr-2"><i class="fas fa-edit"></i></button><button onclick="removeRange(${i})" class="text-red-500"><i class="fas fa-trash"></i></button></td></tr>`;
+            const rgbStr = d.r ? `${d.r[0]}-${d.r[1]}` : '-';
+            const hsvStr = d.h ? `${d.h[0]}-${d.h[1]}` : '-';
+            
+            tbody.innerHTML += `
+            <tr class="bg-white border-b hover:bg-gray-50 text-xs">
+                <td class="px-3 py-2 font-bold">${d.type}</td>
+                <td class="px-3 py-2">${d.level}</td>
+                
+                <td class="px-1 py-2 text-center text-red-600 bg-red-50">${d.r ? d.r[0]+'-'+d.r[1] : ''}</td>
+                <td class="px-1 py-2 text-center text-green-600 bg-green-50">${d.g ? d.g[0]+'-'+d.g[1] : ''}</td>
+                <td class="px-1 py-2 text-center text-blue-600 bg-blue-50">${d.b ? d.b[0]+'-'+d.b[1] : ''}</td>
+                
+                <td class="px-1 py-2 text-center text-indigo-600 bg-indigo-50 border-l">${d.h ? d.h[0]+'-'+d.h[1] : ''}</td>
+                <td class="px-1 py-2 text-center text-indigo-600 bg-indigo-50">${d.s ? d.s[0]+'-'+d.s[1] : ''}</td>
+                <td class="px-1 py-2 text-center text-indigo-600 bg-indigo-50">${d.v ? d.v[0]+'-'+d.v[1] : ''}</td>
+                
+                <td class="px-3 py-2 text-center flex gap-1 justify-center">
+                    <button onclick="startEdit(${i})" class="text-blue-500 mr-2"><i class="fas fa-edit"></i></button>
+                    <button onclick="removeRange(${i})" class="text-red-500"><i class="fas fa-trash"></i></button>
+                </td>
+            </tr>`;
         });
     }
 
     function startEdit(index) {
         editIndex = index;
         const item = mySoilData[index];
-        const fields = ['newType', 'newLevel', 'newRMin', 'newRMax', 'newGMin', 'newGMax', 'newBMin', 'newBMax'];
-        const values = [item.type, item.level, item.r[0], item.r[1], item.g[0], item.g[1], item.b[0], item.b[1]];
-        fields.forEach((id, idx) => document.getElementById(id).value = values[idx]);
+        const fields = ['newType', 'newLevel', 'newRMin', 'newRMax', 'newGMin', 'newGMax', 'newBMin', 'newBMax', 'newHMin', 'newHMax', 'newSMin', 'newSMax', 'newVMin', 'newVMax'];
+        
+        document.getElementById('newType').value = item.type;
+        document.getElementById('newLevel').value = item.level;
+        
+        if(item.r) {
+            document.getElementById('newRMin').value = item.r[0]; document.getElementById('newRMax').value = item.r[1];
+            document.getElementById('newGMin').value = item.g[0]; document.getElementById('newGMax').value = item.g[1];
+            document.getElementById('newBMin').value = item.b[0]; document.getElementById('newBMax').value = item.b[1];
+        } else {
+             ['newRMin', 'newRMax', 'newGMin', 'newGMax', 'newBMin', 'newBMax'].forEach(id => document.getElementById(id).value = '');
+        }
+
+        if(item.h) {
+            document.getElementById('newHMin').value = item.h[0]; document.getElementById('newHMax').value = item.h[1];
+            document.getElementById('newSMin').value = item.s[0]; document.getElementById('newSMax').value = item.s[1];
+            document.getElementById('newVMin').value = item.v[0]; document.getElementById('newVMax').value = item.v[1];
+        } else {
+             ['newHMin', 'newHMax', 'newSMin', 'newSMax', 'newVMin', 'newVMax'].forEach(id => document.getElementById(id).value = '');
+        }
+
         document.getElementById('formTitle').innerText = `แก้ไขข้อมูลแถวที่ ${index + 1}`;
         document.getElementById('btnSaveRange').innerHTML = '<i class="fas fa-save"></i> บันทึกแก้ไข';
         document.getElementById('btnSaveRange').className = "bg-orange-500 text-white px-4 py-2 rounded hover:bg-orange-600 text-sm flex-1";
@@ -913,7 +1031,8 @@
         document.getElementById('btnSaveRange').innerHTML = '<i class="fas fa-plus"></i> เพิ่มข้อมูล';
         document.getElementById('btnSaveRange').className = "bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 text-sm flex-1";
         document.getElementById('btnCancelEdit').classList.add('hidden');
-        ['newType', 'newLevel', 'newRMin', 'newRMax', 'newGMin', 'newGMax', 'newBMin', 'newBMax'].forEach(id => document.getElementById(id).value = '');
+        const fields = ['newType', 'newLevel', 'newRMin', 'newRMax', 'newGMin', 'newGMax', 'newBMin', 'newBMax', 'newHMin', 'newHMax', 'newSMin', 'newSMax', 'newVMin', 'newVMax'];
+        fields.forEach(id => document.getElementById(id).value = '');
     }
 
     async function handleLogin(e) {
@@ -928,31 +1047,20 @@
 
     async function performLogin(user) {
         currentUser = user;
-        
-        // Instant UI Switch (No Blocking)
+        await loadUserData(user.username);
         document.getElementById('login-panel').classList.add('hidden');
         document.getElementById('admin-panel').classList.remove('hidden');
         document.getElementById('userInfoDisplay').classList.remove('hidden');
         document.getElementById('loggedInUser').innerText = `👤 ${user.username}`;
         const userManageBtn = document.getElementById('menu-user-manage');
         if (user.role === 'admin') userManageBtn.classList.remove('hidden'); else userManageBtn.classList.add('hidden');
-        
-        // Hide Main Loader immediately
-        showLoading(false);
-
-        // Background load
-        showSyncBadge(true, "กำลังโหลดข้อมูลส่วนตัว...");
-        loadUserData(user.username).then(() => {
-             populateCameraList();
-             renderConfigTable();
-             renderUserTable();
-             document.getElementById('toggleBrightness').checked = myPreferences.showBrightness;
-             document.getElementById('toggleRealTime').checked = myPreferences.useRealTimeAnalysis;
-             toggleBrightnessSetting(false);
-             toggleRealTimeSetting(false);
-             showSyncBadge(false);
-        });
-
+        document.getElementById('toggleBrightness').checked = myPreferences.showBrightness;
+        document.getElementById('toggleRealTime').checked = myPreferences.useRealTimeAnalysis;
+        toggleBrightnessSetting(false);
+        toggleRealTimeSetting(false);
+        populateCameraList();
+        renderConfigTable();
+        renderUserTable();
         document.getElementById('username').value = '';
         document.getElementById('password').value = '';
         document.getElementById('loginError').classList.add('hidden');
