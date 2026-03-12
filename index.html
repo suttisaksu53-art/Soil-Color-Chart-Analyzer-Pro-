@@ -22,6 +22,19 @@
             background-color: rgba(0, 255, 0, 0.2); box-shadow: 0 0 4px rgba(0,0,0,0.8);
             pointer-events: none; transform: translate(-50%, -50%); z-index: 10; display: none;
         }
+        .center-reticle {
+            position: absolute; top: 50%; left: 50%; width: 40px; height: 40px;
+            border: 2px solid #ef4444;
+            background-color: rgba(255, 0, 0, 0.1);
+            transform: translate(-50%, -50%); pointer-events: none; z-index: 20;
+            box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.5);
+        }
+        .center-reticle::before, .center-reticle::after {
+            content: ''; position: absolute; background: #ef4444;
+        }
+        .center-reticle::before { top: 50%; left: -10px; width: 60px; height: 1px; transform: translateY(-50%); }
+        .center-reticle::after { left: 50%; top: -10px; height: 60px; width: 1px; transform: translateX(-50%); }
+        
         .cursor-crosshair { cursor: crosshair; }
         .loading-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
@@ -197,7 +210,8 @@
                     <div class="flex flex-col h-full space-y-4 md:space-y-6">
                         <!-- Result Section -->
                         <div class="flex flex-col justify-center items-center bg-emerald-50 rounded-xl border-2 border-emerald-100 p-3 text-center shadow-sm min-h-[120px] relative">
-                            <button onclick="generatePDFReport()" class="absolute top-2 right-2 text-emerald-600 hover:text-emerald-800 p-2 text-xs font-bold border border-emerald-200 rounded hover:bg-emerald-100 transition">
+                            <!-- PDF Button with ID for toggling -->
+                            <button id="btnExportPDF" onclick="generatePDFReport()" class="absolute top-2 right-2 text-emerald-600 hover:text-emerald-800 p-2 text-xs font-bold border border-emerald-200 rounded hover:bg-emerald-100 transition">
                                 <i class="fas fa-file-pdf fa-lg"></i> Export PDF
                             </button>
                             <h3 class="text-gray-500 text-xs font-medium uppercase tracking-wider mb-1">ผลการวิเคราะห์</h3>
@@ -205,7 +219,8 @@
                             <div id="resultDesc" class="mt-1 text-sm text-gray-600">เลือกธาตุและกำหนดค่าสี</div>
                         </div>
 
-                        <div class="bg-gray-100 p-4 rounded-lg relative shadow-inner">
+                        <!-- RGB Adjustment Section (Collapsible with ID) -->
+                        <div id="rgbAdjustSection" class="bg-gray-100 p-4 rounded-lg relative shadow-inner">
                             <div class="flex justify-between items-center mb-2">
                                 <h2 class="text-xs font-bold text-gray-500 uppercase">3. ค่าสี RGB (ปรับแต่ง)</h2>
                                 <button id="btnPauseAnalysis" onclick="toggleAnalysisPause()" class="text-[10px] bg-white hover:bg-gray-50 text-gray-600 px-2 py-1 rounded border border-gray-300 shadow-sm transition">
@@ -262,8 +277,8 @@
                             </div>
                         </div>
 
-                        <!-- Calibration Section -->
-                        <div class="bg-orange-50 border border-orange-200 rounded-lg p-4 mt-4">
+                        <!-- Calibration Section (Collapsible with ID) -->
+                        <div id="calibrationSection" class="bg-orange-50 border border-orange-200 rounded-lg p-4 mt-4">
                             <h4 class="font-bold text-orange-800 mb-2 text-sm"><i class="fas fa-balance-scale"></i> ตั้งค่าแสงขาว (Calibration)</h4>
                             <div class="flex gap-2 mb-2">
                                 <button onclick="calibrateSystem()" class="bg-orange-600 hover:bg-orange-700 text-white py-2 px-4 rounded text-sm shadow flex-1">
@@ -334,6 +349,14 @@
                                     <div class="mt-3 border-t border-yellow-200 pt-3">
                                         <label class="block text-gray-700 font-medium mb-1 text-sm"><i class="fas fa-video mr-1"></i> เลือกกล้อง</label>
                                         <div class="flex gap-2"><select id="cameraSelect" class="flex-1 p-2 border rounded text-sm bg-white" onchange="updateCameraSelection()"><option value="">-- อัตโนมัติ --</option></select><button onclick="populateCameraList()" class="bg-yellow-500 text-white px-3 py-1 rounded text-xs hover:bg-yellow-600" title="Refresh"><i class="fas fa-sync"></i></button></div>
+                                    </div>
+                                    
+                                    <!-- New Settings: UI Visibility & Test Types -->
+                                    <div class="mt-3 border-t border-yellow-200 pt-3">
+                                        <label class="block text-gray-700 font-medium mb-2 text-sm"><i class="fas fa-cogs mr-1"></i> ตั้งค่าการแสดงผล (Interface)</label>
+                                        <div class="space-y-2" id="settingsContainer">
+                                            <!-- Will be populated by JS -->
+                                        </div>
                                     </div>
                                 </div>
                                 
@@ -473,7 +496,7 @@
 
         async set(key, value) {
             localStorage.setItem(key, value);
-            // Fire and forget
+            // Optimistic save (no await) - Fire and forget
             fetch(`${HARDCODED_SHEET_URL}?action=write&key=${encodeURIComponent(key)}`, {
                 method: 'POST',
                 mode: 'no-cors',
@@ -492,10 +515,19 @@
     };
 
     // --- GLOBAL STATE ---
+    const ALL_TEST_TYPES = ['N', 'Nitrate', 'P', 'K', 'Soil Respiration', 'pH'];
     let users = [];
     let currentUser = null;
     let mySoilData = []; 
-    let myPreferences = { showBrightness: false, useRealTimeAnalysis: true, selectedCameraId: '' };
+    let myPreferences = { 
+        showBrightness: false, 
+        useRealTimeAnalysis: true, 
+        selectedCameraId: '',
+        showRGBAdjust: true, 
+        showCalibration: true, 
+        visibleTestTypes: ['N', 'Nitrate', 'P', 'K', 'Soil Respiration', 'pH'],
+        showPDFExport: true // New Preference
+    };
     let editIndex = -1; // -1 means add mode
     let isCameraActive = false;
     let isAnalysisPaused = false; 
@@ -573,12 +605,18 @@
         const btn = document.getElementById('btnPauseAnalysis');
         if(!btn) return;
         
+        const video = document.getElementById('videoElement');
+
         if (isAnalysisPaused) {
+            // Pause
             btn.innerHTML = '<i class="fas fa-play mr-1"></i> อ่านต่อ';
             btn.className = "text-[10px] bg-green-50 hover:bg-green-100 text-green-700 px-2 py-1 rounded border border-green-200 shadow-sm transition";
+            if (isCameraActive && video) video.pause(); // Stop video stream
         } else {
+            // Resume
             btn.innerHTML = '<i class="fas fa-pause mr-1"></i> หยุดอ่านค่า';
             btn.className = "text-[10px] bg-white hover:bg-gray-50 text-gray-600 px-2 py-1 rounded border border-gray-300 shadow-sm transition";
+             if (isCameraActive && video) video.play(); // Resume video stream
         }
     }
 
@@ -704,6 +742,30 @@
             topRightStatus.innerHTML = '<i class="fas fa-times-circle text-red-500 text-2xl drop-shadow-md"></i>';
         }
     }
+    
+    function populateTestTypes() {
+        const select = document.getElementById('testType');
+        select.innerHTML = '';
+        
+        // Default list if pref missing
+        const visibleTypes = myPreferences.visibleTestTypes || ALL_TEST_TYPES;
+        
+        ALL_TEST_TYPES.forEach(type => {
+            if(visibleTypes.includes(type)) {
+                const option = document.createElement('option');
+                option.value = type;
+                option.text = type;
+                select.appendChild(option);
+            }
+        });
+        
+        // If nothing visible, show default
+        if(select.options.length === 0) {
+            const option = document.createElement('option');
+            option.value = "N"; option.text = "Nitrogen (N) - ไนโตรเจน";
+            select.appendChild(option);
+        }
+    }
 
     // --- SYSTEM INIT ---
     async function initSystem() { 
@@ -748,7 +810,9 @@
             if (storedStr) finalData = JSON.parse(storedStr);
             if (finalData) {
                 mySoilData = finalData.soilData || [];
-                myPreferences = finalData.preferences || myPreferences;
+                // Merge preferences safely
+                myPreferences = { ...myPreferences, ...finalData.preferences };
+                if(!myPreferences.visibleTestTypes) myPreferences.visibleTestTypes = [...ALL_TEST_TYPES];
             } else {
                 mySoilData = JSON.parse(JSON.stringify(DEFAULT_SOIL_DATA));
                 // Only auto-save if admin to initialize
@@ -758,6 +822,9 @@
             console.error("Load Error", e);
             mySoilData = JSON.parse(JSON.stringify(DEFAULT_SOIL_DATA));
         }
+        
+        // Apply settings after load
+        populateTestTypes();
     }
 
     // New "Optimistic Save" Logic:
@@ -935,7 +1002,7 @@
                              entry.g = [parseInt(row[4]), parseInt(row[5])];
                              entry.b = [parseInt(row[6]), parseInt(row[7])];
                         }
-                        // HSV (Optional)
+                        // HSV (Optional - Cols 8-13)
                         if(row[8] !== undefined && row[8] !== "" && row[8] !== null) {
                             entry.h = [parseInt(row[8]), parseInt(row[9])];
                             entry.s = [parseInt(row[10]), parseInt(row[11])];
@@ -1045,6 +1112,72 @@
         const fields = ['newType', 'newLevel', 'newRMin', 'newRMax', 'newGMin', 'newGMax', 'newBMin', 'newBMax', 'newHMin', 'newHMax', 'newSMin', 'newSMax', 'newVMin', 'newVMax'];
         fields.forEach(id => document.getElementById(id).value = '');
     }
+    
+    // --- ADMIN SETTINGS RENDER ---
+    function renderAdminSettings() {
+        const container = document.getElementById('settingsContainer');
+        container.innerHTML = '';
+        
+        // 1. Visible Test Types
+        ALL_TEST_TYPES.forEach(type => {
+            const div = document.createElement('div');
+            div.className = "flex items-center";
+            const checked = myPreferences.visibleTestTypes.includes(type) ? 'checked' : '';
+            div.innerHTML = `
+                <input type="checkbox" id="chk_${type}" class="w-4 h-4 text-emerald-600 rounded" ${checked} onchange="toggleTestTypeVisibility('${type}')">
+                <label for="chk_${type}" class="ml-2 text-sm text-gray-700">${type}</label>
+            `;
+            container.appendChild(div);
+        });
+
+        // Separator
+        const hr = document.createElement('hr');
+        hr.className = "my-2 border-yellow-200";
+        container.appendChild(hr);
+
+        // 2. RGB Adjust Visibility
+        const divRGB = document.createElement('div');
+        divRGB.className = "flex items-center";
+        divRGB.innerHTML = `
+            <input type="checkbox" id="chk_showRGBAdjust" class="w-4 h-4 text-emerald-600 rounded" ${myPreferences.showRGBAdjust ? 'checked' : ''} onchange="toggleSectionVisibility('showRGBAdjust')">
+            <label for="chk_showRGBAdjust" class="ml-2 text-sm text-gray-700 font-bold">แสดงส่วนปรับแต่ง RGB</label>
+        `;
+        container.appendChild(divRGB);
+
+        // 3. Calibration Visibility
+        const divCalib = document.createElement('div');
+        divCalib.className = "flex items-center";
+        divCalib.innerHTML = `
+            <input type="checkbox" id="chk_showCalibration" class="w-4 h-4 text-emerald-600 rounded" ${myPreferences.showCalibration ? 'checked' : ''} onchange="toggleSectionVisibility('showCalibration')">
+            <label for="chk_showCalibration" class="ml-2 text-sm text-gray-700 font-bold">แสดงส่วน Calibration</label>
+        `;
+        container.appendChild(divCalib);
+
+         // 4. PDF Export Visibility (New)
+         const divPDF = document.createElement('div');
+         divPDF.className = "flex items-center";
+         divPDF.innerHTML = `
+            <input type="checkbox" id="chk_showPDFExport" class="w-4 h-4 text-emerald-600 rounded" ${myPreferences.showPDFExport ? 'checked' : ''} onchange="toggleSectionVisibility('showPDFExport')">
+            <label for="chk_showPDFExport" class="ml-2 text-sm text-gray-700 font-bold">แสดงปุ่ม Export PDF</label>
+        `;
+        container.appendChild(divPDF);
+    }
+
+    function toggleTestTypeVisibility(type) {
+        if(myPreferences.visibleTestTypes.includes(type)) {
+            myPreferences.visibleTestTypes = myPreferences.visibleTestTypes.filter(t => t !== type);
+        } else {
+            myPreferences.visibleTestTypes.push(type);
+        }
+        saveUserData();
+        populateTestTypes();
+    }
+
+    function toggleSectionVisibility(settingKey) {
+        myPreferences[settingKey] = !myPreferences[settingKey];
+        saveUserData();
+        updateInterfaceState();
+    }
 
     async function handleLogin(e) {
         e.preventDefault();
@@ -1072,6 +1205,9 @@
         populateCameraList();
         renderConfigTable();
         renderUserTable();
+        // Render Settings checkboxes
+        renderAdminSettings();
+        
         document.getElementById('username').value = '';
         document.getElementById('password').value = '';
         document.getElementById('loginError').classList.add('hidden');
@@ -1096,6 +1232,8 @@
         ['menu-color-config', 'menu-user-manage', 'menu-change-pass'].forEach(id => document.getElementById(id).className = "w-full text-left px-4 py-2 rounded hover:bg-white hover:shadow font-medium text-gray-600");
         document.getElementById('admin-' + subTab).classList.remove('hidden');
         document.getElementById('menu-' + subTab).className = "w-full text-left px-4 py-2 rounded hover:bg-white hover:shadow font-medium text-emerald-700 bg-white shadow";
+        
+        if(subTab === 'color-config') renderAdminSettings();
     }
 
     async function toggleBrightnessSetting(save=true) {
@@ -1108,11 +1246,23 @@
     function updateInterfaceState() {
         const btn = document.getElementById('btnManualAnalyze');
         const statusTxt = document.getElementById('autoAnalyzeStatus');
+        
+        // Visibility Toggles
+        const rgbSection = document.getElementById('rgbAdjustSection');
+        const calibSection = document.getElementById('calibrationSection');
+        const btnPDF = document.getElementById('btnExportPDF');
+
+        if(rgbSection) rgbSection.style.display = myPreferences.showRGBAdjust !== false ? 'block' : 'none';
+        if(calibSection) calibSection.style.display = myPreferences.showCalibration !== false ? 'block' : 'none';
+        if(btnPDF) btnPDF.style.display = myPreferences.showPDFExport !== false ? 'block' : 'none'; // Default true
+
         if(!btn || !statusTxt) return;
         if (myPreferences.useRealTimeAnalysis) { btn.classList.add('hidden'); statusTxt.innerText = ""; analyzeSoil(); } 
         else { btn.classList.remove('hidden'); statusTxt.innerText = ""; }
         const checkbox = document.getElementById('toggleRealTime');
         if(checkbox) checkbox.checked = myPreferences.useRealTimeAnalysis;
+        
+        populateTestTypes();
     }
 
     async function toggleRealTimeSetting(save=true) {
