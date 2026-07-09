@@ -14,7 +14,19 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     
     <style>
-        body { font-family: 'Sarabun', sans-serif; }
+        body { 
+            font-family: 'Sarabun', sans-serif;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+            -webkit-touch-callout: none;
+            padding-top: env(safe-area-inset-top);
+            padding-bottom: env(safe-area-inset-bottom);
+            padding-left: env(safe-area-inset-left);
+            padding-right: env(safe-area-inset-right);
+        }
+        input, textarea, select { -webkit-user-select: text; user-select: text; }
         .color-box { transition: all 0.3s ease; }
         input[type=number]::-webkit-inner-spin-button, input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
         .marker-box {
@@ -22,19 +34,6 @@
             background-color: rgba(0, 255, 0, 0.2); box-shadow: 0 0 4px rgba(0,0,0,0.8);
             pointer-events: none; transform: translate(-50%, -50%); z-index: 10; display: none;
         }
-        .center-reticle {
-            position: absolute; top: 50%; left: 50%; width: 40px; height: 40px;
-            border: 2px solid #ef4444;
-            background-color: rgba(255, 0, 0, 0.1);
-            transform: translate(-50%, -50%); pointer-events: none; z-index: 20;
-            box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.5);
-        }
-        .center-reticle::before, .center-reticle::after {
-            content: ''; position: absolute; background: #ef4444;
-        }
-        .center-reticle::before { top: 50%; left: -10px; width: 60px; height: 1px; transform: translateY(-50%); }
-        .center-reticle::after { left: 50%; top: -10px; height: 60px; width: 1px; transform: translateX(-50%); }
-        
         .cursor-crosshair { cursor: crosshair; }
         .loading-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
@@ -75,7 +74,7 @@
         }
     </style>
 </head>
-<body class="bg-gray-50 min-h-screen p-2 md:p-8 flex flex-col">
+<body class="bg-gray-50 min-h-screen p-2 md:p-6 flex flex-col">
 
     <!-- Status Toast -->
     <div id="statusToast" class="status-toast">
@@ -90,7 +89,7 @@
 
     <!-- Loading Spinner -->
     <div id="loadingOverlay" class="loading-overlay hidden">
-        <button onclick="showLoading(false)" class="absolute top-4 right-4 text-gray-400 hover:text-red-500 p-2" title="บังคับปิด">
+        <button onclick="showLoading(false)" class="absolute top-4 right-4 text-gray-400 hover:text-red-500 p-4 min-h-[44px] min-w-[44px]" title="บังคับปิด">
             <i class="fas fa-times fa-2x"></i>
         </button>
         <div class="animate-spin rounded-full h-16 w-16 border-t-4 border-emerald-600 mb-4"></div>
@@ -101,7 +100,7 @@
     <div class="max-w-5xl mx-auto bg-white rounded-xl shadow-lg overflow-hidden w-full flex-grow">
         
         <!-- Header -->
-        <div class="bg-emerald-600 p-6 text-white relative overflow-hidden">
+        <div class="bg-emerald-600 p-4 md:p-6 text-white relative overflow-hidden">
             <div class="absolute top-0 left-0 w-full h-full opacity-10 pointer-events-none">
                 <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
                     <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
@@ -111,7 +110,7 @@
                 </svg>
             </div>
 
-            <div class="flex flex-col md:flex-row items-center justify-center gap-6 relative z-10">
+            <div class="flex flex-col md:flex-row items-center justify-center gap-4 md:gap-6 relative z-10">
                 <div class="flex-shrink-0">
                      <svg width="80" height="80" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" class="drop-shadow-xl hover:scale-105 transition-transform duration-300">
                         <circle cx="50" cy="50" r="48" fill="white" fill-opacity="0.95"/>
@@ -143,7 +142,7 @@
             
             <div id="userInfoDisplay" class="absolute top-4 right-4 text-sm hidden z-20">
                 <span id="loggedInUser" class="font-bold mr-2 bg-emerald-700 px-3 py-1 rounded-full bg-opacity-50 text-white"></span>
-                <button onclick="logout()" class="bg-red-500 hover:bg-red-600 px-3 py-1 rounded text-xs transition shadow-md font-bold text-white">
+                <button onclick="logout()" class="bg-red-500 hover:bg-red-600 px-3 py-1 min-h-[32px] rounded text-xs transition shadow-md font-bold text-white">
                     <i class="fas fa-sign-out-alt"></i> Logout
                 </button>
             </div>
@@ -156,7 +155,7 @@
             </div>
         </div>
 
-        <div class="p-4 md:p-6">
+        <div class="p-3 md:p-6">
             <div class="flex border-b mb-6">
                 <button onclick="switchTab('analyze')" id="btn-analyze" class="flex-1 py-3 text-emerald-600 border-b-2 border-emerald-600 font-bold focus:outline-none transition">🔍 วิเคราะห์ผล</button>
                 <button onclick="switchTab('config')" id="btn-config" class="flex-1 py-3 text-gray-500 hover:text-emerald-500 font-medium focus:outline-none transition">⚙️ ระบบจัดการ (Admin)</button>
@@ -169,37 +168,42 @@
                         <div class="bg-white border rounded-lg p-4 shadow-sm">
                             <label class="font-bold text-gray-700 mb-2 block">1. เลือกธาตุที่ต้องการตรวจ:</label>
                             <select id="testType" class="w-full border rounded p-2 bg-gray-50 text-gray-700 font-semibold" onchange="analyzeSoil()">
-                                <option value="N">Nitrogen (N) - ไนโตรเจน</option>
-                                <option value="Nitrate">Nitrate (NO3) - ไนเตรท</option>
-                                <option value="P">Phosphorus (P) - ฟอสฟอรัส</option>
-                                <option value="K">Potassium (K) - โพแทสเซียม</option>
-                                <option value="Soil Respiration">Soil Respiration - การหายใจของดิน</option>
-                                <option value="pH">pH - ความเป็นกรดด่าง</option>
+                                <!-- Options populated by JS -->
                             </select>
                         </div>
 
                         <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                            <label class="font-bold text-gray-700 mb-2 block">2. แหล่งที่มาของสี หากอัปโหลดรูปใช้รูปอัตราส่วน 1-1 </label>
+                            <label class="font-bold text-gray-700 mb-2 block">2. แหล่งที่มาของสี (Source):</label>
                             <div class="flex gap-2 mb-4">
-                                <button onclick="toggleCamera()" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2 rounded shadow text-sm">
+                                <button onclick="toggleCamera()" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2 rounded shadow text-sm min-h-[44px]">
                                     <i class="fas fa-camera mr-1"></i> เปิด/ปิด กล้อง
                                 </button>
-                                <button onclick="triggerFileUpload()" class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white py-2 rounded shadow text-sm">
+                                <button onclick="triggerFileUpload()" class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white py-2 rounded shadow text-sm min-h-[44px]">
                                     <i class="fas fa-image mr-1"></i> อัปโหลดรูป
                                 </button>
                                 <input type="file" id="fileInput" accept="image/*" class="hidden" onchange="handleImageUpload(event)">
                             </div>
-                            <div id="mediaContainer" class="relative w-full h-64 bg-black rounded-lg overflow-hidden hidden cursor-crosshair group" onclick="handleMediaClick(event)">
-                                <button onclick="switchCamera(event)" id="btnFlipCamera" class="absolute top-2 right-2 bg-white/80 hover:bg-white text-gray-800 p-3 rounded-full shadow-lg z-30 transition transform active:scale-95 hidden">
+                            
+                            <!-- Media Container: Fixed layout issues here -->
+                            <div id="mediaContainer" class="relative w-full bg-black rounded-lg overflow-hidden flex justify-center items-center cursor-crosshair group" style="min-height: 256px; height: 55vh; max-height: 70vh;" onclick="handleMediaClick(event)" ontouchstart="handleMediaClick(event)">
+                                <button onclick="switchCamera(event)" id="btnFlipCamera" class="absolute top-2 right-2 bg-white/80 hover:bg-white text-gray-800 p-3 rounded-full shadow-lg z-30 transition transform active:scale-95 hidden min-h-[44px] min-w-[44px]">
                                     <i class="fas fa-sync-alt fa-lg text-emerald-600"></i>
                                 </button>
-                                <video id="videoElement" autoplay playsinline class="absolute top-0 left-0 w-full h-full object-contain hidden opacity-0"></video>
-                                <img id="imagePreview" class="absolute top-0 left-0 w-full h-full object-contain hidden opacity-0" />
-                                <canvas id="canvasElement" class="absolute top-0 left-0 w-full h-full"></canvas>
-                                <!-- Center Reticle for Camera Mode -->
-                                <div id="centerReticle" class="center-reticle hidden"></div>
-                                <!-- Click Marker for Image Mode -->
+                                <button onclick="toggleFullscreen(event)" id="btnFullscreen" class="absolute bottom-2 right-2 bg-white/80 hover:bg-white text-gray-800 p-2 rounded shadow z-30 transition hidden min-h-[44px] min-w-[44px]">
+                                    <i class="fas fa-expand text-emerald-600"></i>
+                                </button>
+                                
+                                <video id="videoElement" autoplay playsinline class="hidden" style="display:none;"></video>
+                                <img id="imagePreview" class="hidden" style="display:none;" />
+                                
+                                <!-- Canvas is the ONLY thing shown to avoid overlap -->
+                                <canvas id="canvasElement" class="max-w-full max-h-full object-contain"></canvas>
+                                
+                                <!-- Click Marker for Both Modes -->
                                 <div id="colorMarker" class="marker-box hidden"></div>
+                            </div>
+                            <div class="text-xs text-center text-gray-500 mt-1">
+                                * แตะที่ภาพ/วิดีโอเพื่อเลือกจุดวิเคราะห์สี
                             </div>
                         </div>
 
@@ -210,7 +214,6 @@
                     <div class="flex flex-col h-full space-y-4 md:space-y-6">
                         <!-- Result Section -->
                         <div class="flex flex-col justify-center items-center bg-emerald-50 rounded-xl border-2 border-emerald-100 p-3 text-center shadow-sm min-h-[120px] relative">
-                            <!-- PDF Button with ID for toggling -->
                             <button id="btnExportPDF" onclick="generatePDFReport()" class="absolute top-2 right-2 text-emerald-600 hover:text-emerald-800 p-2 text-xs font-bold border border-emerald-200 rounded hover:bg-emerald-100 transition">
                                 <i class="fas fa-file-pdf fa-lg"></i> Export PDF
                             </button>
@@ -219,8 +222,7 @@
                             <div id="resultDesc" class="mt-1 text-sm text-gray-600">เลือกธาตุและกำหนดค่าสี</div>
                         </div>
 
-                        <!-- RGB Adjustment Section (Collapsible with ID) -->
-                        <div id="rgbAdjustSection" class="bg-gray-100 p-4 rounded-lg relative shadow-inner">
+                        <div id="rgbAdjustSection" class="bg-gray-100 p-4 rounded-lg relative shadow-inner" style="display: none;">
                             <div class="flex justify-between items-center mb-2">
                                 <h2 class="text-xs font-bold text-gray-500 uppercase">3. ค่าสี RGB (ปรับแต่ง)</h2>
                                 <button id="btnPauseAnalysis" onclick="toggleAnalysisPause()" class="text-[10px] bg-white hover:bg-gray-50 text-gray-600 px-2 py-1 rounded border border-gray-300 shadow-sm transition">
@@ -243,7 +245,7 @@
                                 </div>
                             </div>
                             
-                            <!-- HSV Display Section (New) -->
+                            <!-- HSV Display Section -->
                             <div id="hsvDisplayContainer" class="mt-2 p-2 bg-indigo-50 rounded-lg border border-indigo-200 shadow-sm">
                                 <div class="flex justify-between items-center text-indigo-800 mb-1">
                                     <span class="font-bold text-xs uppercase"><i class="fas fa-palette mr-1"></i> ค่าสี HSV</span>
@@ -278,7 +280,7 @@
                         </div>
 
                         <!-- Calibration Section (Collapsible with ID) -->
-                        <div id="calibrationSection" class="bg-orange-50 border border-orange-200 rounded-lg p-4 mt-4">
+                        <div id="calibrationSection" class="bg-orange-50 border border-orange-200 rounded-lg p-4 mt-4" style="display: none;">
                             <h4 class="font-bold text-orange-800 mb-2 text-sm"><i class="fas fa-balance-scale"></i> ตั้งค่าแสงขาว (Calibration)</h4>
                             <div class="flex gap-2 mb-2">
                                 <button onclick="calibrateSystem()" class="bg-orange-600 hover:bg-orange-700 text-white py-2 px-4 rounded text-sm shadow flex-1">
@@ -334,8 +336,8 @@
                                     <p class="text-xs mt-2 text-gray-600">URL: ...Script.google.com.../exec</p>
                                 </div>
                                 <div class="flex gap-2">
-                                    <button onclick="forceSyncData()" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"><i class="fas fa-sync"></i> ทดสอบการเชื่อมต่อ / บังคับ Sync</button>
-                                    <button onclick="resetToDefaults()" class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"><i class="fas fa-trash-restore"></i> รีเซ็ตข้อมูลเป็นค่าเริ่มต้น</button>
+                                    <button onclick="forceSyncData()" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 min-h-[44px]"><i class="fas fa-sync"></i> ทดสอบการเชื่อมต่อ / บังคับ Sync</button>
+                                    <button onclick="resetToDefaults()" class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 min-h-[44px]"><i class="fas fa-trash-restore"></i> รีเซ็ตข้อมูลเป็นค่าเริ่มต้น</button>
                                 </div>
                             </div>
 
@@ -487,8 +489,9 @@
                 const response = await fetch(`${HARDCODED_SHEET_URL}?action=read&key=${encodeURIComponent(key)}&t=${Date.now()}`);
                 const result = await response.json();
                 if(result.status === 'success') {
-                    if(result.data) localStorage.setItem(key, JSON.stringify(result.data));
-                    return result.data ? JSON.stringify(result.data) : null;
+                    const dataStr = typeof result.data === 'string' ? result.data : JSON.stringify(result.data);
+                    if(result.data) localStorage.setItem(key, dataStr);
+                    return result.data ? dataStr : null;
                 }
             } catch(e) { console.error("Cloud Read Error", e); }
             return localStorage.getItem(key); 
@@ -508,7 +511,7 @@
             }).catch(e => { 
                 console.error("Cloud Write Error", e);
                 showSyncBadge(false);
-                showToast("บันทึก Cloud ล้มเหลว (ใช้ในเครื่อง)", "error");
+                showToast("เชื่อมต่อ Cloud ไม่ได้ (บันทึกในเครื่อง)", "error");
             });
             showSyncBadge(true, "กำลังบันทึกข้อมูล...");
         }
@@ -523,20 +526,22 @@
         showBrightness: false, 
         useRealTimeAnalysis: true, 
         selectedCameraId: '',
-        showRGBAdjust: true, 
-        showCalibration: true, 
+        showRGBAdjust: false, 
+        showCalibration: false, 
         visibleTestTypes: ['N', 'Nitrate', 'P', 'K', 'Soil Respiration', 'pH'],
-        showPDFExport: true // New Preference
+        showPDFExport: true 
     };
     let editIndex = -1; // -1 means add mode
     let isCameraActive = false;
+    let videoStream = null;
+    let lastProcessTime = 0;
     let isAnalysisPaused = false; 
     let markerPosition = null; 
     let currentFacingMode = 'environment';
     
     // Calibration State
     let calibrationOffsets = { r: 0, g: 0, b: 0 };
-    let lastRawRGB = { r: 0, g: 0, b: 0 }; // Stores raw reading for calibration
+    let lastRawRGB = { r: 0, g: 0, b: 0 }; 
     const MARKER_SIZE = 30;
 
     // --- DEFAULTS ---
@@ -604,19 +609,16 @@
         isAnalysisPaused = !isAnalysisPaused;
         const btn = document.getElementById('btnPauseAnalysis');
         if(!btn) return;
-        
         const video = document.getElementById('videoElement');
 
         if (isAnalysisPaused) {
-            // Pause
             btn.innerHTML = '<i class="fas fa-play mr-1"></i> อ่านต่อ';
             btn.className = "text-[10px] bg-green-50 hover:bg-green-100 text-green-700 px-2 py-1 rounded border border-green-200 shadow-sm transition";
-            if (isCameraActive && video) video.pause(); // Stop video stream
+            if (isCameraActive && video) video.pause(); 
         } else {
-            // Resume
             btn.innerHTML = '<i class="fas fa-pause mr-1"></i> หยุดอ่านค่า';
             btn.className = "text-[10px] bg-white hover:bg-gray-50 text-gray-600 px-2 py-1 rounded border border-gray-300 shadow-sm transition";
-             if (isCameraActive && video) video.play(); // Resume video stream
+             if (isCameraActive && video) video.play(); 
         }
     }
 
@@ -633,59 +635,55 @@
         // Current Values
         const currentHSV = rgbToHsv(r, g, b);
 
-        // --- UPDATED FLEXIBLE LOGIC ---
-        // Match ONLY valid criteria (NaN/Null/Undefined are ignored)
-        
-        // Helper to check if a single range is valid (has 2 numbers)
-        const isValidRange = (arr) => arr && arr.length === 2 && !isNaN(arr[0]) && !isNaN(arr[1]) && arr[0] !== null && arr[1] !== null;
+        // --- FLEXIBLE MATCHING LOGIC (UPDATED) ---
+        // Helper to check if range has valid numbers (not null/NaN/empty)
+        const hasValue = (arr) => arr && arr.length === 2 && arr[0] !== null && arr[0] !== "" && !isNaN(arr[0]) && arr[1] !== null && arr[1] !== "" && !isNaN(arr[1]);
 
         for(let item of candidates) {
-            let isMatch = true; // Assume match, fail if any VALID criteria fails
-            let criteriaCount = 0; // Ensure at least one criteria exists
+            let isMatch = true; 
+            let criteriaChecked = 0; 
 
-            // Check RGB
-            if (isValidRange(item.r)) {
-                criteriaCount++;
-                if (r < item.r[0] || r > item.r[1]) isMatch = false;
-            }
-            if (isValidRange(item.g)) {
-                criteriaCount++;
-                if (g < item.g[0] || g > item.g[1]) isMatch = false;
-            }
-            if (isValidRange(item.b)) {
-                criteriaCount++;
-                if (b < item.b[0] || b > item.b[1]) isMatch = false;
-            }
+            // Check RGB if present
+            if (hasValue(item.r)) { criteriaChecked++; if (r < item.r[0] || r > item.r[1]) isMatch = false; }
+            if (hasValue(item.g)) { criteriaChecked++; if (g < item.g[0] || g > item.g[1]) isMatch = false; }
+            if (hasValue(item.b)) { criteriaChecked++; if (b < item.b[0] || b > item.b[1]) isMatch = false; }
 
-            // Check HSV
-            if (isValidRange(item.h)) {
-                criteriaCount++;
-                if (currentHSV.h < item.h[0] || currentHSV.h > item.h[1]) isMatch = false;
-            }
-            if (isValidRange(item.s)) {
-                criteriaCount++;
-                if (currentHSV.s < item.s[0] || currentHSV.s > item.s[1]) isMatch = false;
-            }
-            if (isValidRange(item.v)) {
-                criteriaCount++;
-                if (currentHSV.v < item.v[0] || currentHSV.v > item.v[1]) isMatch = false;
-            }
+            // Check HSV if present
+            if (hasValue(item.h)) { criteriaChecked++; if (currentHSV.h < item.h[0] || currentHSV.h > item.h[1]) isMatch = false; }
+            if (hasValue(item.s)) { criteriaChecked++; if (currentHSV.s < item.s[0] || currentHSV.s > item.s[1]) isMatch = false; }
+            if (hasValue(item.v)) { criteriaChecked++; if (currentHSV.v < item.v[0] || currentHSV.v > item.v[1]) isMatch = false; }
 
-            // Only consider it a match if at least one criteria was checked and all checked passed
-            if (criteriaCount > 0 && isMatch) {
+            // If no criteria exist at all, it's not a match.
+            // If checking occurred and isMatch is still true -> Match found!
+            if (criteriaChecked > 0 && isMatch) {
                 match = item;
                 break;
             }
         }
 
-        // Closest Match (Simple Euclidean on RGB for fallback if only RGB exists, or ignore)
+        // Closest Match (Fallback using RGB/HSV weighted distance)
         if (!match) {
             for(let item of candidates) {
-                if (!isValidRange(item.r)) continue; // Only calc distance if RGB exists
-                const centerR = (item.r[0] + item.r[1]) / 2;
-                const centerG = (item.g[0] + item.g[1]) / 2;
-                const centerB = (item.b[0] + item.b[1]) / 2;
-                const dist = Math.sqrt(Math.pow(r - centerR, 2) + Math.pow(g - centerG, 2) + Math.pow(b - centerB, 2));
+                let dist = Infinity;
+                if (hasValue(item.h) && hasValue(item.s) && hasValue(item.v)) {
+                    // HSV Weighted Distance
+                    const centerH = (item.h[0] + item.h[1]) / 2;
+                    const centerS = (item.s[0] + item.s[1]) / 2;
+                    const centerV = (item.v[0] + item.v[1]) / 2;
+                    let dh = Math.abs(currentHSV.h - centerH);
+                    if (dh > 180) dh = 360 - dh; // Hue wraps around 360
+                    const hDist = dh * 2.0; // High weight
+                    const sDist = Math.abs(currentHSV.s - centerS) * 1.0;
+                    const vDist = Math.abs(currentHSV.v - centerV) * 0.5; // Low weight (light)
+                    dist = Math.sqrt(hDist*hDist + sDist*sDist + vDist*vDist);
+                } else if (hasValue(item.r) && hasValue(item.g) && hasValue(item.b)) {
+                    // RGB Euclidean Distance
+                    const centerR = (item.r[0] + item.r[1]) / 2;
+                    const centerG = (item.g[0] + item.g[1]) / 2;
+                    const centerB = (item.b[0] + item.b[1]) / 2;
+                    dist = Math.sqrt(Math.pow(r - centerR, 2) + Math.pow(g - centerG, 2) + Math.pow(b - centerB, 2));
+                }
+                
                 if(dist < minD) { minD = dist; closest = item; }
             }
         }
@@ -695,11 +693,17 @@
         if (!txt) return;
         
         if(match) {
-            txt.innerText = match.level; txt.className = "text-2xl md:text-5xl font-extrabold text-emerald-600"; desc.innerText = "ตรงตามเกณฑ์ (Match)";
+            txt.innerText = match.level; 
+            txt.className = "text-2xl md:text-5xl font-extrabold text-emerald-600"; 
+            desc.innerText = "ตรงตามเกณฑ์ (Match)";
         } else if (closest && minD < 80) { 
-            txt.innerText = closest.level + "*"; txt.className = "text-2xl md:text-5xl font-extrabold text-yellow-600"; desc.innerText = "ค่าใกล้เคียง (Approx)";
+            txt.innerText = closest.level + "*"; 
+            txt.className = "text-2xl md:text-5xl font-extrabold text-yellow-600"; 
+            desc.innerText = "ค่าใกล้เคียง (Approx)";
         } else {
-            txt.innerText = "ไม่พบข้อมูล"; txt.className = "text-2xl md:text-5xl font-extrabold text-gray-400"; desc.innerText = "อยู่นอกเหนือช่วงข้อมูล";
+            txt.innerText = "ไม่พบข้อมูล"; 
+            txt.className = "text-2xl md:text-5xl font-extrabold text-gray-400"; 
+            desc.innerText = "อยู่นอกเหนือช่วงข้อมูล";
         }
     }
 
@@ -711,7 +715,10 @@
         const b = document.getElementById('inputB').value;
         
         // Update RGB Display
-        document.getElementById('colorPreview').style.backgroundColor = `rgb(${r},${g},${b})`;
+        const colorPreview = document.getElementById('colorPreview');
+        if(colorPreview) {
+            colorPreview.style.backgroundColor = `rgb(${r},${g},${b})`;
+        }
         
         // Convert and Update HSV Display
         const hsv = rgbToHsv(r, g, b);
@@ -746,20 +753,14 @@
     function populateTestTypes() {
         const select = document.getElementById('testType');
         select.innerHTML = '';
-        
-        // Default list if pref missing
         const visibleTypes = myPreferences.visibleTestTypes || ALL_TEST_TYPES;
-        
         ALL_TEST_TYPES.forEach(type => {
             if(visibleTypes.includes(type)) {
                 const option = document.createElement('option');
-                option.value = type;
-                option.text = type;
+                option.value = type; option.text = type;
                 select.appendChild(option);
             }
         });
-        
-        // If nothing visible, show default
         if(select.options.length === 0) {
             const option = document.createElement('option');
             option.value = "N"; option.text = "Nitrogen (N) - ไนโตรเจน";
@@ -815,15 +816,12 @@
                 if(!myPreferences.visibleTestTypes) myPreferences.visibleTestTypes = [...ALL_TEST_TYPES];
             } else {
                 mySoilData = JSON.parse(JSON.stringify(DEFAULT_SOIL_DATA));
-                // Only auto-save if admin to initialize
                 if(username === 'admin') saveUserData();
             }
         } catch (e) {
             console.error("Load Error", e);
             mySoilData = JSON.parse(JSON.stringify(DEFAULT_SOIL_DATA));
         }
-        
-        // Apply settings after load
         populateTestTypes();
     }
 
@@ -1118,7 +1116,6 @@
         const container = document.getElementById('settingsContainer');
         container.innerHTML = '';
         
-        // 1. Visible Test Types
         ALL_TEST_TYPES.forEach(type => {
             const div = document.createElement('div');
             div.className = "flex items-center";
@@ -1130,12 +1127,10 @@
             container.appendChild(div);
         });
 
-        // Separator
         const hr = document.createElement('hr');
         hr.className = "my-2 border-yellow-200";
         container.appendChild(hr);
 
-        // 2. RGB Adjust Visibility
         const divRGB = document.createElement('div');
         divRGB.className = "flex items-center";
         divRGB.innerHTML = `
@@ -1144,7 +1139,6 @@
         `;
         container.appendChild(divRGB);
 
-        // 3. Calibration Visibility
         const divCalib = document.createElement('div');
         divCalib.className = "flex items-center";
         divCalib.innerHTML = `
@@ -1153,7 +1147,6 @@
         `;
         container.appendChild(divCalib);
 
-         // 4. PDF Export Visibility (New)
          const divPDF = document.createElement('div');
          divPDF.className = "flex items-center";
          divPDF.innerHTML = `
@@ -1205,9 +1198,7 @@
         populateCameraList();
         renderConfigTable();
         renderUserTable();
-        // Render Settings checkboxes
         renderAdminSettings();
-        
         document.getElementById('username').value = '';
         document.getElementById('password').value = '';
         document.getElementById('loginError').classList.add('hidden');
@@ -1228,11 +1219,10 @@
 
     function switchAdminTab(subTab) {
         if (subTab === 'user-manage' && (!currentUser || currentUser.role !== 'admin')) { alert("เฉพาะ Admin เท่านั้น"); return; }
-        ['admin-color-config', 'admin-user-manage', 'admin-change-pass'].forEach(id => document.getElementById(id).classList.add('hidden'));
-        ['menu-color-config', 'menu-user-manage', 'menu-change-pass'].forEach(id => document.getElementById(id).className = "w-full text-left px-4 py-2 rounded hover:bg-white hover:shadow font-medium text-gray-600");
+        ['admin-system-status', 'admin-color-config', 'admin-user-manage', 'admin-change-pass'].forEach(id => document.getElementById(id).classList.add('hidden'));
+        ['menu-system-status', 'menu-color-config', 'menu-user-manage', 'menu-change-pass'].forEach(id => document.getElementById(id).className = "w-full text-left px-4 py-2 rounded hover:bg-white hover:shadow font-medium text-gray-600");
         document.getElementById('admin-' + subTab).classList.remove('hidden');
         document.getElementById('menu-' + subTab).className = "w-full text-left px-4 py-2 rounded hover:bg-white hover:shadow font-medium text-emerald-700 bg-white shadow";
-        
         if(subTab === 'color-config') renderAdminSettings();
     }
 
@@ -1247,14 +1237,13 @@
         const btn = document.getElementById('btnManualAnalyze');
         const statusTxt = document.getElementById('autoAnalyzeStatus');
         
-        // Visibility Toggles
         const rgbSection = document.getElementById('rgbAdjustSection');
         const calibSection = document.getElementById('calibrationSection');
         const btnPDF = document.getElementById('btnExportPDF');
 
-        if(rgbSection) rgbSection.style.display = myPreferences.showRGBAdjust !== false ? 'block' : 'none';
-        if(calibSection) calibSection.style.display = myPreferences.showCalibration !== false ? 'block' : 'none';
-        if(btnPDF) btnPDF.style.display = myPreferences.showPDFExport !== false ? 'block' : 'none'; // Default true
+        if(rgbSection) rgbSection.style.display = myPreferences.showRGBAdjust === true ? 'block' : 'none';
+        if(calibSection) calibSection.style.display = myPreferences.showCalibration === true ? 'block' : 'none';
+        if(btnPDF) btnPDF.style.display = myPreferences.showPDFExport !== false ? 'block' : 'none';
 
         if(!btn || !statusTxt) return;
         if (myPreferences.useRealTimeAnalysis) { btn.classList.add('hidden'); statusTxt.innerText = ""; analyzeSoil(); } 
@@ -1263,6 +1252,11 @@
         if(checkbox) checkbox.checked = myPreferences.useRealTimeAnalysis;
         
         populateTestTypes();
+    }
+
+    async function executeWithSaving(fn) {
+        if (fn) await fn();
+        await saveUserData();
     }
 
     async function toggleRealTimeSetting(save=true) {
@@ -1274,6 +1268,35 @@
              myPreferences.useRealTimeAnalysis = isChecked;
         }
         updateInterfaceState();
+    }
+    
+    function toggleFullscreen(e) {
+        if(e) e.stopPropagation();
+        const elem = document.getElementById('mediaContainer');
+        if (!document.fullscreenElement) {
+            if(elem.requestFullscreen) elem.requestFullscreen().catch(err => console.warn(err));
+            else if(elem.webkitRequestFullscreen) elem.webkitRequestFullscreen();
+        } else {
+            if(document.exitFullscreen) document.exitFullscreen();
+            else if(document.webkitExitFullscreen) document.webkitExitFullscreen();
+        }
+    }
+    
+    async function forceSyncData() {
+        if (!currentUser) return;
+        showLoading(true, "กำลังซิงค์ข้อมูลจาก Cloud...");
+        await loadUserData(currentUser.username);
+        showLoading(false);
+        showToast("ซิงค์ข้อมูลสำเร็จ");
+    }
+
+    async function resetToDefaults() {
+        if (!confirm("คุณแน่ใจหรือไม่ว่าต้องการรีเซ็ตข้อมูลเป็นค่าเริ่มต้น?")) return;
+        mySoilData = JSON.parse(JSON.stringify(DEFAULT_SOIL_DATA));
+        await saveUserData();
+        showToast("รีเซ็ตเป็นค่าเริ่มต้นแล้ว");
+        populateTestTypes();
+        renderAdminSettings();
     }
     
     function updateCameraSelection() {
@@ -1358,8 +1381,9 @@
             container.classList.remove('hidden');
             img.classList.add('hidden');
             btnFlip.classList.remove('hidden');
-            let constraints = { video: { facingMode: currentFacingMode } };
-            if (myPreferences.selectedCameraId) constraints.video = { deviceId: { exact: myPreferences.selectedCameraId } };
+            document.getElementById('btnFullscreen').classList.remove('hidden');
+            let constraints = { video: { facingMode: currentFacingMode, width: { ideal: 1920 }, height: { ideal: 1080 } } };
+            if (myPreferences.selectedCameraId) constraints.video.deviceId = { exact: myPreferences.selectedCameraId };
             navigator.mediaDevices.getUserMedia(constraints).then(stream => {
                 videoStream = stream;
                 video.srcObject = stream;
@@ -1374,7 +1398,7 @@
         if(!isCameraActive) return;
         currentFacingMode = (currentFacingMode === 'environment') ? 'user' : 'environment';
         stopCameraStream();
-        navigator.mediaDevices.getUserMedia({ video: { facingMode: currentFacingMode } }).then(stream => {
+        navigator.mediaDevices.getUserMedia({ video: { facingMode: currentFacingMode, width: { ideal: 1920 }, height: { ideal: 1080 } } }).then(stream => {
             videoStream = stream;
             document.getElementById('videoElement').srcObject = stream;
             isCameraActive = true;
@@ -1395,25 +1419,38 @@
         if(vid.readyState === vid.HAVE_ENOUGH_DATA) {
             if(cvs.width !== vid.videoWidth) { cvs.width = vid.videoWidth; cvs.height = vid.videoHeight; }
             ctx.drawImage(vid, 0, 0);
-            if(markerPosition) processAreaColor(cvs, markerPosition.x, markerPosition.y);
-            // Center Reticle Logic
-            else if (!isAnalysisPaused) {
-                 const rect = cvs.getBoundingClientRect();
-                 processAreaColor(cvs, rect.width/2 + rect.left, rect.height/2 + rect.top);
+            
+            const now = performance.now();
+            if (now - lastProcessTime >= 100) { // 10 fps throttle
+                if(markerPosition) processAreaColor(cvs, markerPosition.x, markerPosition.y);
+                // Center Reticle Logic
+                else if (!isAnalysisPaused) {
+                     const rect = cvs.getBoundingClientRect();
+                     processAreaColor(cvs, rect.width/2 + rect.left, rect.height/2 + rect.top);
+                }
+                lastProcessTime = now;
             }
         }
         requestAnimationFrame(drawVideoToCanvasLoop);
     }
 
     function handleMediaClick(e) {
+        if(e.type === 'touchstart') {
+             if (e.cancelable) e.preventDefault(); // prevent double click if possible
+        }
         if(e.target.closest('button')) return;
+        
+        let clientX = e.clientX || (e.touches && e.touches[0].clientX);
+        let clientY = e.clientY || (e.touches && e.touches[0].clientY);
+        if (!clientX || !clientY) return;
+
         const rect = e.currentTarget.getBoundingClientRect();
-        markerPosition = { x: e.clientX, y: e.clientY };
+        markerPosition = { x: clientX, y: clientY };
         const marker = document.getElementById('colorMarker');
         marker.style.display = 'block';
-        marker.style.left = (e.clientX - rect.left) + 'px';
-        marker.style.top = (e.clientY - rect.top) + 'px';
-        if(!isCameraActive) processAreaColor(document.getElementById('canvasElement'), e.clientX, e.clientY);
+        marker.style.left = (clientX - rect.left) + 'px';
+        marker.style.top = (clientY - rect.top) + 'px';
+        if(!isCameraActive) processAreaColor(document.getElementById('canvasElement'), clientX, clientY);
     }
 
     function processAreaColor(cvs, cx, cy) {
@@ -1422,15 +1459,21 @@
         const rect = cvs.getBoundingClientRect();
         const scaleX = cvs.width / rect.width;
         const scaleY = cvs.height / rect.height;
-        const sx = Math.floor(((cx - rect.left) * scaleX) - 15);
-        const sy = Math.floor(((cy - rect.top) * scaleY) - 15);
+        const sx = Math.max(0, Math.floor(((cx - rect.left) * scaleX) - 15));
+        const sy = Math.max(0, Math.floor(((cy - rect.top) * scaleY) - 15));
+        
+        // Ensure bounds
+        if (sx + 30 > cvs.width || sy + 30 > cvs.height) return;
+
         try {
             const data = cvs.getContext('2d').getImageData(sx, sy, 30, 30).data;
-            let r=0, g=0, b=0, c=0;
-            for(let i=0; i<data.length; i+=4) { r+=data[i]; g+=data[i+1]; b+=data[i+2]; c++; }
-            if(c>0) {
-                // Apply Calibration Offset
-                lastRawRGB = { r: Math.round(r/c), g: Math.round(g/c), b: Math.round(b/c) };
+            const rArr=[], gArr=[], bArr=[];
+            for(let i=0; i<data.length; i+=4) { rArr.push(data[i]); gArr.push(data[i+1]); bArr.push(data[i+2]); }
+            if(rArr.length>0) {
+                // Median filter
+                rArr.sort((a,b)=>a-b); gArr.sort((a,b)=>a-b); bArr.sort((a,b)=>a-b);
+                const mid = Math.floor(rArr.length / 2);
+                lastRawRGB = { r: rArr[mid], g: gArr[mid], b: bArr[mid] };
                 
                 // Clamp values 0-255
                 let finalR = Math.min(255, Math.max(0, lastRawRGB.r + calibrationOffsets.r));
@@ -1534,6 +1577,32 @@
     document.addEventListener('DOMContentLoaded', () => {
         initSystem();
     });
+
+    // --- SECURITY & HARDENING ---
+    (function detectDevTools() {
+        const threshold = 160;
+        setInterval(() => {
+            const start = performance.now();
+            debugger;
+            if (performance.now() - start > threshold) {
+                document.body.innerHTML = '<h1 style="color:red;text-align:center;margin-top:20%">Access Denied</h1>';
+            }
+        }, 1000);
+    })();
+
+    document.addEventListener('contextmenu', e => e.preventDefault());
+
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'F12' || 
+           (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'J' || e.key === 'C')) || 
+           (e.ctrlKey && (e.key === 'u' || e.key === 's'))) {
+            e.preventDefault(); return false;
+        }
+    });
+
+    if (location.hostname !== 'localhost' && location.hostname !== '127.0.0.1') {
+        console.log = console.warn = console.error = console.info = function(){};
+    }
 
 </script>
 </body>
