@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Soil Color Chart Analyzer Pro</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=Sarabun:wght@300;400;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- SheetJS for Excel -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -14,8 +14,13 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     
     <style>
-        body { 
-            font-family: 'Sarabun', sans-serif;
+        /* --- FRESH NATURE & SOIL THEME --- */
+        body {
+            font-family: 'Sarabun', 'Inter', sans-serif;
+            background: linear-gradient(rgba(243, 249, 243, 0.94), rgba(243, 249, 243, 0.94)), 
+                        url('https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?q=80&w=1600&auto=format&fit=crop') no-repeat center center fixed !important;
+            background-size: cover !important;
+            color: #1e3a1e !important;
             -webkit-user-select: none;
             -moz-user-select: none;
             -ms-user-select: none;
@@ -26,13 +31,206 @@
             padding-left: env(safe-area-inset-left);
             padding-right: env(safe-area-inset-right);
         }
+
+        * {
+            border-radius: 12px !important;
+            border-color: rgba(46, 125, 50, 0.12);
+        }
+
+        h1, h2, h3, h4, .font-bold {
+            font-family: 'Inter', 'Sarabun', sans-serif !important;
+            font-weight: 700 !important;
+            color: #1e3e20 !important;
+        }
+
+        /* Nature Emerald Header */
+        .bg-emerald-600 {
+            background: linear-gradient(135deg, #1b3d22 0%, #2e7d32 100%) !important;
+            border-bottom: 5px solid #8d6e63 !important; /* Soil Brown Line */
+            box-shadow: 0 10px 30px rgba(46, 125, 50, 0.15) !important;
+            border-radius: 16px 16px 0 0 !important;
+        }
+        
+        .bg-emerald-600 p {
+            color: #c8e6c9 !important;
+        }
+
+        /* Main Container: Elegant Glass Card */
+        .max-w-5xl {
+            background-color: rgba(255, 255, 255, 0.85) !important;
+            backdrop-filter: blur(20px) !important;
+            -webkit-backdrop-filter: blur(20px) !important;
+            border: 1px solid rgba(255, 255, 255, 0.4) !important;
+            box-shadow: 0 20px 40px rgba(46, 125, 50, 0.08) !important;
+            border-radius: 16px !important;
+        }
+
+        /* Sub Cards */
+        .bg-white, .bg-gray-50, .bg-blue-50, .bg-yellow-50 {
+            background-color: rgba(255, 255, 255, 0.9) !important;
+            border: 1px solid rgba(46, 125, 50, 0.1) !important;
+            box-shadow: 0 8px 24px rgba(46, 125, 50, 0.04) !important;
+            color: #2e4d30;
+        }
+        
+        .bg-blue-50 {
+            background: linear-gradient(135deg, rgba(255,255,255,0.9) 0%, rgba(232,245,233,0.9) 100%) !important;
+            border-left: 4px solid #2e7d32 !important;
+        }
+        
+        .bg-yellow-50 {
+            background: linear-gradient(135deg, rgba(255,255,255,0.9) 0%, rgba(255,248,225,0.9) 100%) !important;
+            border-left: 4px solid #ffa000 !important;
+        }
+
+        /* Inputs & Selects */
+        input, select, textarea {
+            background-color: rgba(255, 255, 255, 0.9) !important;
+            color: #1e3a1e !important;
+            border: 1px solid rgba(46, 125, 50, 0.25) !important;
+            padding: 10px !important;
+            transition: all 0.3s ease !important;
+        }
+        input:focus, select:focus {
+            border-color: #2e7d32 !important;
+            box-shadow: 0 0 0 3px rgba(46, 125, 50, 0.15) !important;
+            outline: none !important;
+        }
+
+        /* Buttons */
+        button, .btn-primary {
+            background: linear-gradient(135deg, #f1f8f3 0%, #e8f5e9 100%) !important;
+            color: #2e7d32 !important;
+            border: 1px solid rgba(46, 125, 50, 0.2) !important;
+            font-family: 'Inter', 'Sarabun', sans-serif !important;
+            font-weight: 600 !important;
+            transition: all 0.3s ease !important;
+            box-shadow: 0 4px 8px rgba(46, 125, 50, 0.05) !important;
+        }
+        
+        button:hover {
+            background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%) !important;
+            border-color: #2e7d32 !important;
+            transform: translateY(-1px);
+            box-shadow: 0 6px 12px rgba(46, 125, 50, 0.1) !important;
+        }
+        
+        button:active {
+            transform: translateY(0);
+        }
+
+        /* Green Primary Buttons */
+        .bg-emerald-600, .bg-green-600, .bg-blue-600, .bg-indigo-600 {
+            background: linear-gradient(135deg, #2e7d32 0%, #1b5e20 100%) !important;
+            border: none !important;
+            color: #ffffff !important;
+            box-shadow: 0 4px 12px rgba(46, 125, 50, 0.2) !important;
+        }
+        .bg-emerald-600:hover, .bg-green-600:hover, .bg-blue-600:hover, .bg-indigo-600:hover {
+            background: linear-gradient(135deg, #388e3c 0%, #2e7d32 100%) !important;
+            box-shadow: 0 6px 16px rgba(46, 125, 50, 0.3) !important;
+        }
+
+        /* Earth Brown Accent Buttons */
+        .bg-yellow-500, .bg-orange-500 {
+            background: linear-gradient(135deg, #8d6e63 0%, #6d4c41 100%) !important; /* Soil Brown */
+            color: #ffffff !important;
+            border: none !important;
+            box-shadow: 0 4px 12px rgba(141, 110, 99, 0.2) !important;
+        }
+        .bg-yellow-500:hover, .bg-orange-500:hover {
+            background: linear-gradient(135deg, #a1887f 0%, #8d6e63 100%) !important;
+            box-shadow: 0 6px 16px rgba(141, 110, 99, 0.3) !important;
+        }
+
+        /* Red Warning Buttons */
+        .bg-red-500 {
+            background: linear-gradient(135deg, #d32f2f 0%, #b71c1c 100%) !important;
+            color: #ffffff !important;
+            border: none !important;
+        }
+        .bg-red-500:hover {
+            background: linear-gradient(135deg, #e53935 0%, #d32f2f 100%) !important;
+        }
+
+        /* Media Container */
+        #mediaContainer {
+            background-color: #151515 !important;
+            border: 2px solid #2e7d32 !important;
+            box-shadow: 0 8px 24px rgba(46, 125, 50, 0.1) !important;
+        }
+
+        /* Tabs styling */
+        .border-b {
+            border-bottom: 2px solid rgba(46, 125, 50, 0.08) !important;
+        }
+        #btn-analyze, #btn-config {
+            background: transparent !important;
+            border: none !important;
+            color: #777777 !important;
+            box-shadow: none !important;
+        }
+        #btn-analyze.text-emerald-600, #btn-config.text-emerald-600 {
+            color: #2e7d32 !important;
+            border-bottom: 3px solid #2e7d32 !important;
+            font-weight: bold !important;
+        }
+
+        /* Table Design */
+        table {
+            border-collapse: collapse !important;
+            background-color: rgba(255, 255, 255, 0.5) !important;
+        }
+        th, td {
+            border: 1px solid rgba(46, 125, 50, 0.1) !important;
+            color: #2e4d30 !important;
+            font-family: 'Sarabun', sans-serif !important;
+        }
+        th {
+            background-color: #e8f5e9 !important;
+            color: #1b5e20 !important;
+            font-family: 'Inter', 'Sarabun', sans-serif !important;
+        }
+        tr:hover {
+            background-color: rgba(46, 125, 50, 0.03) !important;
+        }
+        
+        /* Status Badges */
+        .sync-badge, .status-toast {
+            background: rgba(255, 255, 255, 0.95) !important;
+            backdrop-filter: blur(10px) !important;
+            border: 1px solid #2e7d32 !important;
+            box-shadow: 0 10px 30px rgba(46, 125, 50, 0.1) !important;
+            color: #1b5e20 !important;
+        }
+        
+        /* Text selection */
         input, textarea, select { -webkit-user-select: text; user-select: text; }
+        
+        /* Custom Colors */
+        .text-emerald-600 { color: #2e7d32 !important; }
+        .text-yellow-600 { color: #f57c00 !important; }
+        .text-gray-400 { color: #777777 !important; }
+        .text-gray-700 { color: #2e4d30 !important; }
+        .text-gray-600 { color: #555555 !important; }
+        .text-gray-500 { color: #666666 !important; }
+        
+        /* Icon styles */
+        .fa-flask, .fa-database, .fa-check-circle {
+            color: #ffa000 !important; /* Gold warning elements */
+        }
+        /* --- END FRESH NATURE & SOIL THEME --- */
         .color-box { transition: all 0.3s ease; }
         input[type=number]::-webkit-inner-spin-button, input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
         .marker-box {
             position: absolute; width: 30px; height: 30px; border: 2px solid #00ff00;
             background-color: rgba(0, 255, 0, 0.2); box-shadow: 0 0 4px rgba(0,0,0,0.8);
             pointer-events: none; transform: translate(-50%, -50%); z-index: 10; display: none;
+        }
+        .marker-box.calibration-mode {
+            border: 2px dashed #ff8c00 !important;
+            background-color: rgba(255, 140, 0, 0.25) !important;
+            box-shadow: 0 0 6px rgba(255, 140, 0, 0.8) !important;
         }
         .cursor-crosshair { cursor: crosshair; }
         .loading-overlay {
@@ -201,6 +399,27 @@
                                 
                                 <!-- Click Marker for Both Modes -->
                                 <div id="colorMarker" class="marker-box hidden"></div>
+                                
+                                <!-- Calibration Overlay (ซ้อนทับ mediaContainer) -->
+                                <div id="calibOverlay" class="hidden absolute inset-0 z-20 flex flex-col justify-between p-3 pointer-events-none">
+                                    <!-- พื้นหลังกึ่งทึบ -->
+                                    <div class="absolute inset-0 bg-amber-950/20 pointer-events-none"></div>
+                                    <!-- ข้อความแนะนำด้านบน -->
+                                    <div class="w-full text-center pointer-events-none z-30">
+                                        <span class="inline-block bg-amber-600 text-white text-xs px-3 py-1.5 rounded-full shadow-lg animate-pulse font-semibold">
+                                            📍 แตะที่กระดาษขาวบนจอ แล้วกด "ยืนยัน Calibrate"
+                                        </span>
+                                    </div>
+                                    <!-- ปุ่มยกเลิกและยืนยัน (ล่างสุด) -->
+                                    <div class="w-full flex justify-between gap-2 pointer-events-none z-30 mt-auto">
+                                        <button onclick="exitCalibrationMode(event)" class="pointer-events-auto bg-gray-600/90 hover:bg-gray-700 text-white text-xs font-semibold py-2 px-4 rounded shadow-lg active:scale-95 transition">
+                                            ยกเลิก
+                                        </button>
+                                        <button id="btnConfirmCalib" onclick="confirmCalibration(event)" class="pointer-events-auto bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold py-2 px-4 rounded shadow-lg active:scale-95 transition hidden">
+                                            <i class="fas fa-check-circle mr-1"></i> ยืนยัน Calibrate
+                                        </button>
+                                    </div>
+                                </div>
                             </div>
                             <div class="text-xs text-center text-gray-500 mt-1">
                                 * แตะที่ภาพ/วิดีโอเพื่อเลือกจุดวิเคราะห์สี
@@ -282,14 +501,37 @@
                         <!-- Calibration Section (Collapsible with ID) -->
                         <div id="calibrationSection" class="bg-orange-50 border border-orange-200 rounded-lg p-4 mt-4" style="display: none;">
                             <h4 class="font-bold text-orange-800 mb-2 text-sm"><i class="fas fa-balance-scale"></i> ตั้งค่าแสงขาว (Calibration)</h4>
+                            
+                            <!-- คำแนะนำสั้นๆ -->
+                            <div class="text-xs text-orange-700 mb-3 bg-orange-100/70 p-2 rounded border border-orange-200">
+                                <strong>วิธีใช้:</strong> 
+                                1. วางกระดาษขาวข้างตัวอย่างดินในสภาพแสงเดียวกัน → 
+                                2. กดปุ่ม Calibrate ด้านล่างเพื่อเข้าโหมดปรับเทียบ → 
+                                3. แตะตำแหน่งกระดาษขาวบนหน้าจอ → 
+                                4. กดปุ่ม "ยืนยัน Calibrate" → 
+                                5. เริ่มแตะวัดสีดินตามปกติ
+                            </div>
+
                             <div class="flex gap-2 mb-2">
-                                <button onclick="calibrateSystem()" class="bg-orange-600 hover:bg-orange-700 text-white py-2 px-4 rounded text-sm shadow flex-1">
+                                <button onclick="startCalibrationMode()" class="bg-orange-600 hover:bg-orange-700 text-white py-2 px-4 rounded text-sm shadow flex-1 font-semibold">
                                     <i class="fas fa-magic"></i> Calibrate
                                 </button>
                                 <button onclick="resetCalibration()" class="bg-gray-400 hover:bg-gray-500 text-white py-2 px-4 rounded text-sm shadow">
                                     <i class="fas fa-undo"></i> Reset
                                 </button>
                             </div>
+                            
+                            <!-- แถบ Progress แสดงคุณภาพแสง -->
+                            <div id="lightQualityBar" class="hidden mt-2 mb-2">
+                                <div class="flex justify-between text-xs mb-1">
+                                    <span class="text-orange-700 font-bold">คุณภาพแสง:</span>
+                                    <span id="lightPercent" class="font-mono font-bold text-orange-800">0%</span>
+                                </div>
+                                <div class="w-full bg-gray-200 rounded-full h-2">
+                                    <div id="lightBar" class="h-2 rounded-full transition-all duration-500" style="width: 0%; background: #ef4444;"></div>
+                                </div>
+                            </div>
+
                             <div id="calibrationStatus" class="text-xs text-orange-700 mt-1">
                                 สถานะ: ยังไม่ได้ Calibrate (ใช้ค่าดิบ)
                             </div>
@@ -308,7 +550,7 @@
                         <div class="bg-emerald-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-2 text-emerald-600"><i class="fas fa-user-lock text-2xl"></i></div>
                         <h2 class="text-xl font-bold text-gray-800">เข้าสู่ระบบ</h2>
                     </div>
-                    <form onsubmit="handleLogin(event)">
+                    <form onsubmit="if(window.event) window.event.preventDefault(); handleLogin(window.event); return false;">
                         <div class="mb-4"><label class="block text-gray-700 text-sm font-bold mb-2">Username</label><input type="text" id="username" class="w-full px-3 py-2 border rounded focus:outline-none focus:border-emerald-500" placeholder="Username" required></div>
                         <div class="mb-6"><label class="block text-gray-700 text-sm font-bold mb-2">Password</label><input type="password" id="password" class="w-full px-3 py-2 border rounded focus:outline-none focus:border-emerald-500" placeholder="••••••" required></div>
                         <button type="submit" class="w-full bg-emerald-600 text-white font-bold py-2 rounded hover:bg-emerald-700 transition">เข้าสู่ระบบ</button>
@@ -540,9 +782,12 @@
     let currentFacingMode = 'environment';
     
     // Calibration State
-    let calibrationOffsets = { r: 0, g: 0, b: 0 };
+    let calibrationFactors = { r: 1.0, g: 1.0, b: 1.0 };
     let lastRawRGB = { r: 0, g: 0, b: 0 }; 
     const MARKER_SIZE = 30;
+    let calibrationMode = false;        // true = กำลังอยู่ในโหมดเลือกจุดขาว
+    let calibrationStep = 0;            // 0=IDLE, 1=WAITING_TAP, 2=POINT_SELECTED, 3=CALIBRATED
+    let calibrationWhiteRGB = null;     // ค่าสีขาวที่เลือกไว้ก่อนยืนยัน
 
     // --- DEFAULTS ---
     const DEFAULT_USERS = [
@@ -785,6 +1030,7 @@
                  updateInputDisplay();
              }
              populateCameraList();
+             loadCalibrationFromStorage();
              updateSystemStatus(true);
         }, 500);
     }
@@ -887,47 +1133,241 @@
     }
 
     // --- CALIBRATION FUNCTIONS (NEW) ---
+    function validateWhitePoint(r, g, b) {
+        // เกณฑ์ 1: ค่าความสว่างต้องมากพอ (> 150 จาก 255)
+        const minBrightness = 150;
+        if (r < minBrightness || g < minBrightness || b < minBrightness) {
+            return { 
+                valid: false, 
+                reason: 'สีมืดเกินไป — ไม่ใช่กระดาษขาว',
+                severity: 'error' 
+            };
+        }
+
+        // เกณฑ์ 2: ค่า R, G, B ต้องไม่ต่างกันเกิน 40 (สีขาวจะเท่าๆ กัน)
+        const maxDiff = 40;
+        const diff = Math.max(r, g, b) - Math.min(r, g, b);
+        if (diff > maxDiff) {
+            return { 
+                valid: false, 
+                reason: `สีไม่สม่ำเสมอ (ΔColor = ${diff}) — อาจไม่ใช่กระดาษขาว`,
+                severity: 'warning' 
+            };
+        }
+
+        // เกณฑ์ 3: ค่าเฉลี่ยต้องมากกว่า 180
+        const avg = (r + g + b) / 3;
+        if (avg < 180) {
+            return { 
+                valid: false, 
+                reason: `ค่าเฉลี่ยสีต่ำ (${Math.round(avg)}) — แสงอาจไม่เพียงพอ`,
+                severity: 'warning' 
+            };
+        }
+
+        // ผ่านทั้ง 3 เกณฑ์
+        const quality = Math.round((avg / 255) * 100);
+        return { 
+            valid: true, 
+            reason: `สีขาวยืนยัน ✓ (คุณภาพ ${quality}%)`,
+            severity: 'success',
+            quality: quality
+        };
+    }
+
+    function saveCalibrationToStorage() {
+        const profile = {
+            factors: calibrationFactors,
+            rawWhite: { ...lastRawRGB },
+            timestamp: Date.now(),
+            cameraId: myPreferences.selectedCameraId || 'default'
+        };
+        localStorage.setItem('soil_calibration_profile', JSON.stringify(profile));
+    }
+
+    function loadCalibrationFromStorage() {
+        try {
+            const stored = localStorage.getItem('soil_calibration_profile');
+            if (stored) {
+                const profile = JSON.parse(stored);
+                
+                // Check if calibration is older than 24 hours
+                const ageHours = (Date.now() - profile.timestamp) / (1000 * 60 * 60);
+                if (ageHours > 24) {
+                    setTimeout(() => {
+                        showToast("แนะนำให้ Calibrate ใหม่ (อายุไฟล์เกิน 24 ชม.)", "error");
+                    }, 2000);
+                }
+                
+                calibrationFactors = profile.factors;
+                if (profile.rawWhite) {
+                    lastRawRGB = profile.rawWhite;
+                }
+                
+                // Update UI elements
+                const avgRaw = (lastRawRGB.r + lastRawRGB.g + lastRawRGB.b) / 3;
+                const validation = validateWhitePoint(lastRawRGB.r, lastRawRGB.g, lastRawRGB.b);
+                updateCalibrationUI(validation.quality || Math.round((avgRaw / 255) * 100));
+                
+                const statusEl = document.getElementById('calibrationStatus');
+                if (statusEl) {
+                    const timeStr = new Date(profile.timestamp).toLocaleString('th-TH');
+                    statusEl.innerHTML = `<strong>สถานะ:</strong> Calibrated (R x${calibrationFactors.r.toFixed(2)}, G x${calibrationFactors.g.toFixed(2)}, B x${calibrationFactors.b.toFixed(2)})<br><span class="text-gray-400 text-[10px]">บันทึกเมื่อ: ${timeStr}</span>`;
+                }
+            }
+        } catch (e) {
+            console.warn("ไม่สามารถโหลด Calibration Profile ได้:", e);
+        }
+    }
+
+    function updateCalibrationUI(quality) {
+        const avgRaw = (lastRawRGB.r + lastRawRGB.g + lastRawRGB.b) / 3;
+        const percent = quality || Math.round((avgRaw / 255) * 100);
+        
+        // Progress Bar
+        const bar = document.getElementById('lightBar');
+        const percentEl = document.getElementById('lightPercent');
+        const barContainer = document.getElementById('lightQualityBar');
+        
+        if (bar && percentEl && barContainer) {
+            barContainer.classList.remove('hidden');
+            percentEl.innerText = percent + '%';
+            bar.style.width = percent + '%';
+            
+            // Color based on quality
+            if (percent > 90) {
+                bar.style.backgroundColor = '#16a34a'; // green-600
+            } else if (percent > 70) {
+                bar.style.backgroundColor = '#d97706'; // amber-600
+            } else {
+                bar.style.backgroundColor = '#dc2626'; // red-600
+            }
+        }
+        
+        // Status text
+        const statusEl = document.getElementById('calibrationStatus');
+        if (statusEl) {
+            statusEl.innerHTML = `<strong>สถานะ:</strong> Calibrated (R x${calibrationFactors.r.toFixed(2)}, G x${calibrationFactors.g.toFixed(2)}, B x${calibrationFactors.b.toFixed(2)})`;
+        }
+
+        const lightEl = document.getElementById('lightQualityStatus');
+        if (lightEl) {
+            if (percent > 90) {
+                lightEl.innerText = `คุณภาพแสง: ดีมาก (${percent}%) - ผลวิเคราะห์จะแม่นยำ`;
+                lightEl.className = "text-xs font-bold mt-1 text-green-600";
+            } else if (percent > 70) {
+                lightEl.innerText = `คุณภาพแสง: ปานกลาง (${percent}%) - ระบบชดเชยแสงให้`;
+                lightEl.className = "text-xs font-bold mt-1 text-amber-600";
+            } else {
+                lightEl.innerText = `คุณภาพแสง: น้อย (${percent}%) - ⚠️ ผลอาจคลาดเคลื่อน ควรหาที่สว่างกว่านี้`;
+                lightEl.className = "text-xs font-bold mt-1 text-red-600";
+            }
+        }
+    }
+
+    function startCalibrationMode() {
+        const previewImg = document.getElementById('imagePreview');
+        const hasUpload = previewImg && previewImg.src && !previewImg.classList.contains('hidden') && previewImg.style.display !== 'none';
+        
+        if (!isCameraActive && !hasUpload) {
+            showToast('กรุณาเปิดกล้องหรืออัปโหลดภาพก่อน', 'error');
+            return;
+        }
+        
+        calibrationMode = true;
+        calibrationStep = 1; // WAITING_TAP
+        
+        // Show Overlay
+        const overlay = document.getElementById('calibOverlay');
+        if (overlay) overlay.classList.remove('hidden');
+        
+        // Change color marker style
+        const marker = document.getElementById('colorMarker');
+        if (marker) {
+            marker.classList.add('calibration-mode');
+        }
+        
+        // Hide confirm button initially
+        const btnConfirm = document.getElementById('btnConfirmCalib');
+        if (btnConfirm) btnConfirm.classList.add('hidden');
+        
+        showToast('📍 แตะที่กระดาษขาวบนหน้าจอ');
+    }
+
+    function exitCalibrationMode(e) {
+        if (e) e.stopPropagation();
+        calibrationMode = false;
+        calibrationStep = 0;
+        
+        // Hide Overlay
+        const overlay = document.getElementById('calibOverlay');
+        if (overlay) overlay.classList.add('hidden');
+        
+        // Reset marker style
+        const marker = document.getElementById('colorMarker');
+        if (marker) {
+            marker.classList.remove('calibration-mode');
+        }
+    }
+
+    function confirmCalibration(e) {
+        if (e) e.stopPropagation();
+        calibrateSystem();
+    }
+
     function calibrateSystem() {
         if (lastRawRGB.r === 0 && lastRawRGB.g === 0 && lastRawRGB.b === 0) {
             alert("กรุณาเปิดกล้องหรืออัปโหลดภาพก่อนทำการ Calibrate");
             return;
         }
 
-        calibrationOffsets.r = 255 - lastRawRGB.r;
-        calibrationOffsets.g = 255 - lastRawRGB.g;
-        calibrationOffsets.b = 255 - lastRawRGB.b;
-
-        const avgRaw = (lastRawRGB.r + lastRawRGB.g + lastRawRGB.b) / 3;
-        const percent = Math.round((avgRaw / 255) * 100);
-        let statusMsg = "";
-        let statusColor = "";
-
-        if (percent > 95) {
-            statusMsg = `แสงดีมาก (${percent}%) - สว่างเพียงพอ`;
-            statusColor = "text-green-600";
-        } else if (percent > 80) {
-            statusMsg = `แสงปานกลาง (${percent}%) - ชดเชยเล็กน้อย`;
-            statusColor = "text-yellow-600";
-        } else {
-            statusMsg = `แสงน้อย (${percent}%) - ระบบชดเชยแสงให้แล้ว`;
-            statusColor = "text-red-600";
+        // Validate white point
+        const validation = validateWhitePoint(lastRawRGB.r, lastRawRGB.g, lastRawRGB.b);
+        if (!validation.valid && validation.severity === 'error') {
+            alert("❌ ไม่สามารถปรับเทียบได้: " + validation.reason);
+            return;
+        }
+        
+        if (validation.severity === 'warning') {
+            if (!confirm("⚠️ " + validation.reason + "\n\nต้องการใช้ค่านี้ปรับเทียบหรือไม่?")) {
+                return;
+            }
         }
 
-        document.getElementById('calibrationStatus').innerHTML = `<strong>Status:</strong> Calibrated (R+${calibrationOffsets.r}, G+${calibrationOffsets.g}, B+${calibrationOffsets.b})`;
-        const lightEl = document.getElementById('lightQualityStatus');
-        lightEl.innerText = statusMsg;
-        lightEl.className = "text-xs font-bold mt-1 " + statusColor;
+        // Calculate multiplicative white balance scaling factors (Von Kries method)
+        calibrationFactors.r = lastRawRGB.r > 0 ? 255 / lastRawRGB.r : 1.0;
+        calibrationFactors.g = lastRawRGB.g > 0 ? 255 / lastRawRGB.g : 1.0;
+        calibrationFactors.b = lastRawRGB.b > 0 ? 255 / lastRawRGB.b : 1.0;
 
+        // Limit the factors to a maximum (e.g. 5.0) to prevent extreme noise amplification in low light
+        const maxGain = 5.0;
+        calibrationFactors.r = Math.min(maxGain, calibrationFactors.r);
+        calibrationFactors.g = Math.min(maxGain, calibrationFactors.g);
+        calibrationFactors.b = Math.min(maxGain, calibrationFactors.b);
+
+        // Save calibration to storage
+        saveCalibrationToStorage();
+
+        // Update UI
+        updateCalibrationUI(validation.quality);
         showToast("Calibrate สำเร็จ! ค่าแสงถูกชดเชยแล้ว");
-        updateInputDisplay(); 
+        exitCalibrationMode();
+        updateInputDisplay();
     }
 
     function resetCalibration() {
-        calibrationOffsets = { r: 0, g: 0, b: 0 };
+        calibrationFactors = { r: 1.0, g: 1.0, b: 1.0 };
+        localStorage.removeItem('soil_calibration_profile');
+        
+        // Hide Quality Bar
+        const barContainer = document.getElementById('lightQualityBar');
+        if (barContainer) barContainer.classList.add('hidden');
+        
         document.getElementById('calibrationStatus').innerText = "สถานะ: ยังไม่ได้ Calibrate (ใช้ค่าดิบ)";
         document.getElementById('lightQualityStatus').innerText = "คุณภาพแสง: รอการวัด...";
         document.getElementById('lightQualityStatus').className = "text-xs font-bold mt-1 text-gray-500";
         showToast("รีเซ็ตค่าแสงแล้ว");
+        updateInputDisplay();
     }
 
     // --- TABLE ACTIONS (FAST UI) ---
@@ -1173,13 +1613,26 @@
     }
 
     async function handleLogin(e) {
-        e.preventDefault();
+        if (e && typeof e.preventDefault === 'function') {
+            e.preventDefault();
+        }
         const u = document.getElementById('username').value;
         const p = document.getElementById('password').value;
         showLoading(true, "ตรวจสอบสิทธิ์...");
-        await loadUsersList(); showLoading(false);
-        const foundUser = users.find(user => user.username === u && user.password === p);
-        if (foundUser) performLogin(foundUser); else document.getElementById('loginError').classList.remove('hidden');
+        try {
+            await loadUsersList();
+            showLoading(false);
+            const foundUser = users.find(user => user.username === u && user.password === p);
+            if (foundUser) {
+                await performLogin(foundUser);
+            } else {
+                document.getElementById('loginError').classList.remove('hidden');
+            }
+        } catch (err) {
+            console.error("Login process error:", err);
+            showLoading(false);
+            alert("เกิดข้อผิดพลาดระหว่างล็อกอิน: " + err.message);
+        }
     }
 
     async function performLogin(user) {
@@ -1202,6 +1655,7 @@
         document.getElementById('username').value = '';
         document.getElementById('password').value = '';
         document.getElementById('loginError').classList.add('hidden');
+        switchAdminTab('color-config');
     }
 
     function logout() {
@@ -1451,6 +1905,27 @@
         marker.style.left = (clientX - rect.left) + 'px';
         marker.style.top = (clientY - rect.top) + 'px';
         if(!isCameraActive) processAreaColor(document.getElementById('canvasElement'), clientX, clientY);
+
+        // Handle Calibration Mode UI Flow
+        if (calibrationMode) {
+            calibrationStep = 2; // POINT_SELECTED
+            
+            // Show Confirm Button
+            const btnConfirm = document.getElementById('btnConfirmCalib');
+            if (btnConfirm) {
+                btnConfirm.classList.remove('hidden');
+                
+                // Perform quick validation to show status on button
+                const validation = validateWhitePoint(lastRawRGB.r, lastRawRGB.g, lastRawRGB.b);
+                if (validation.valid) {
+                    btnConfirm.innerHTML = `<i class="fas fa-check-circle mr-1"></i> ยืนยัน Calibrate (${validation.reason})`;
+                    btnConfirm.className = "pointer-events-auto bg-green-600 hover:bg-green-700 text-white text-xs font-bold py-2 px-4 rounded shadow-lg active:scale-95 transition";
+                } else {
+                    btnConfirm.innerHTML = `<i class="fas fa-exclamation-triangle mr-1"></i> ยืนยัน Calibrate (${validation.reason})`;
+                    btnConfirm.className = "pointer-events-auto bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold py-2 px-4 rounded shadow-lg active:scale-95 transition";
+                }
+            }
+        }
     }
 
     function processAreaColor(cvs, cx, cy) {
@@ -1476,9 +1951,9 @@
                 lastRawRGB = { r: rArr[mid], g: gArr[mid], b: bArr[mid] };
                 
                 // Clamp values 0-255
-                let finalR = Math.min(255, Math.max(0, lastRawRGB.r + calibrationOffsets.r));
-                let finalG = Math.min(255, Math.max(0, lastRawRGB.g + calibrationOffsets.g));
-                let finalB = Math.min(255, Math.max(0, lastRawRGB.b + calibrationOffsets.b));
+                let finalR = Math.min(255, Math.max(0, Math.round(lastRawRGB.r * calibrationFactors.r)));
+                let finalG = Math.min(255, Math.max(0, Math.round(lastRawRGB.g * calibrationFactors.g)));
+                let finalB = Math.min(255, Math.max(0, Math.round(lastRawRGB.b * calibrationFactors.b)));
 
                 document.getElementById('inputR').value = finalR;
                 document.getElementById('inputG').value = finalG;
