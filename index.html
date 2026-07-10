@@ -411,12 +411,12 @@
                                         </span>
                                     </div>
                                     <!-- ปุ่มยกเลิกและยืนยัน (ล่างสุด) -->
-                                    <div class="w-full flex justify-between gap-2 pointer-events-none z-30 mt-auto">
-                                        <button onclick="exitCalibrationMode(event)" class="pointer-events-auto bg-gray-600/90 hover:bg-gray-700 text-white text-xs font-semibold py-2 px-4 rounded shadow-lg active:scale-95 transition">
-                                            ยกเลิก
+                                    <div class="w-full flex justify-between gap-2 pointer-events-none z-30 mt-auto pb-1">
+                                        <button onclick="exitCalibrationMode(event)" ontouchstart="exitCalibrationMode(event); event.preventDefault();" class="pointer-events-auto bg-red-600 hover:bg-red-700 text-white text-sm font-bold py-2.5 px-5 rounded-lg shadow-xl active:scale-95 transition border-2 border-white flex items-center justify-center">
+                                            <i class="fas fa-times-circle mr-1.5 text-lg"></i> ออกจากโหมด
                                         </button>
-                                        <button id="btnConfirmCalib" onclick="confirmCalibration(event)" class="pointer-events-auto bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold py-2 px-4 rounded shadow-lg active:scale-95 transition hidden">
-                                            <i class="fas fa-check-circle mr-1"></i> ยืนยัน Calibrate
+                                        <button id="btnConfirmCalib" onclick="confirmCalibration(event)" ontouchstart="confirmCalibration(event); event.preventDefault();" class="pointer-events-auto bg-green-600 hover:bg-green-700 text-white text-sm font-bold py-2.5 px-5 rounded-lg shadow-xl active:scale-95 transition hidden border-2 border-white flex items-center justify-center">
+                                            <i class="fas fa-check-circle mr-1.5 text-lg"></i> ยืนยัน
                                         </button>
                                     </div>
                                 </div>
